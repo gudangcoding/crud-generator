@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,3 +21,5 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/crud', [App\Http\Controllers\CrudController::class, 'index'])->name('crud');
+Route::get('/router', [App\Http\Controllers\RouteController::class, 'index'])->name('router');

@@ -8,5 +8,7 @@ class CrudController extends Controller
 {
     function index()
     {
+        // echo "Hello World";
+        return view('crud.index');
     }
 }

@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Blank page - Tabler - Premium and Open Source dashboard template with responsive and high quality UI.</title>
+    <title>Crud Generator</title>
     <link href="{{ asset('assets/tabler/dist/css/tabler.min.css?1684106062') }}" rel="stylesheet" />
     <link href="{{ asset('assets/tabler/dist/css/tabler-flags.min.css?1684106062') }}" rel="stylesheet" />
     <link href="{{ asset('assets/tabler/dist/css/tabler-payments.min.css?1684106062') }}" rel="stylesheet" />

@@ -24,10 +24,10 @@
                             </span>
                         </a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="" target="_blank" rel="noopener">
+                            <a class="dropdown-item" href="{{ route('router') }}">
                                 Hak Akses
                             </a>
-                            <a class="dropdown-item" href="">
+                            <a class="dropdown-item" href="{{ route('crud') }}">
                                 Crud Generator
                             </a>
 

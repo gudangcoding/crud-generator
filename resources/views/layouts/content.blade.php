@@ -1,6 +1,6 @@
 <div class="page-wrapper">
     <div class="page-body">
-        <div class="container-xl d-flex flex-column justify-content-center">
+        <div class="container-fluid">
             @yield('content')
         </div>
     </div>
