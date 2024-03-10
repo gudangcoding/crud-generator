@@ -49,7 +49,9 @@ class CrudController extends Controller
         //ppanggil fungsi yang sudah dibuat
         $this->generateMigration($namaTabel, $kolom, $acuan);
         $this->generateModel($namaTabel, $kolom, $acuan);
-        $this->generateController($namaTabel, $namaModel, $namaController, $folderController);
+        $this->generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController);
+        $this->generateControllerAPI($namaTabel, $namaModel, $namaController, $folderController);
+        $this->generateAuthApi($namaController, $folderController);
         $this->generateRouteWeb($namaController, $folderController);
         $this->generateRouteAPI($namaController, $folderController);
         $this->generateViewIndex($namaTabel, $kolom, $acuan);
@@ -57,6 +59,7 @@ class CrudController extends Controller
         $this->generateViewEdit($namaTabel, $kolom, $acuan);
         $this->generateViewShow($namaTabel, $kolom, $acuan);
         $this->generateFakeData($namaTabel, $kolom);
+        $this->generatePostmanJson($namaTabel);
     }
 
     function generateMigration($namaTabel, $kolom, $acuan)
@@ -67,14 +70,16 @@ class CrudController extends Controller
         use Illuminate\Database\Migrations\Migration;
         use Illuminate\Database\Schema\Blueprint;
         use Illuminate\Support\Facades\Schema;
+        use Ramsey\Uuid\Uuid;
 
         class Create" . ucfirst($namaTabel) . "Table extends Migration
         {
             public function up()
             {
                 Schema::create('$namaTabel', function (Blueprint \$table) {
-                    \$table->id();
+                    \$table->uuid('id')->primary();
                     \$table->timestamps();
+                    \$table->softDeletes(); // Menambahkan soft deletes
                     // Buat kolom berdasarkan data kolom yang diterima
                     foreach ($kolom as \$namaKolom => \$detailKolom) {
                         \$type = \$detailKolom['type'];
@@ -329,12 +334,15 @@ class CrudController extends Controller
         namespace App\Models;
 
         use Illuminate\Database\Eloquent\Model;
+        use Illuminate\Database\Eloquent\SoftDeletes;
 
         class $namaModel extends Model
         {
             protected \$fillable = [" . implode(', ', array_map(function ($kolom) {
             return "'$kolom'";
         }, $kolom)) . "];
+
+        protected \$dates = ['deleted_at']; // Tentukan kolom yang merupakan soft delete
 
             // Definisikan relasi dengan model
             " . implode("\n", array_map(function ($relasi) {
@@ -352,7 +360,7 @@ class CrudController extends Controller
         File::put($modelPath, $modelContent);
     }
 
-    function generateController($namaTabel, $namaModel, $namaController, $folderController)
+    function generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController)
     {
         // Membuat controller dengan fungsi CRUD dan validasi
         $controllerContent = "<?php
@@ -363,6 +371,7 @@ class CrudController extends Controller
         use App\Models\\$namaModel;
         use Validator;
         use DB; // Tambahkan penggunaan DB
+        use Illuminate\Database\Eloquent\SoftDeletes;
 
         class $namaController extends Controller
         {
@@ -618,6 +627,97 @@ class CrudController extends Controller
         File::put($apiControllerPath, $apiControllerContent);
     }
 
+    function generateAuthApi(Request $request, $namaController)
+    {
+        $authContent = "<?php
+
+        namespace App\Http\Controllers\API;
+
+        use App\Http\Controllers\Controller;
+        use Illuminate\Http\Request;
+        use App\Models\User; // Ubah User ke nama model yang digunakan jika berbeda
+        use Validator;
+
+        class AuthControllerAPI extends Controller
+        {
+            /**
+             * Register a new user.
+             *
+             * @param  \Illuminate\Http\Request  $request
+             * @return \Illuminate\Http\Response
+             */
+            public function register(Request $request)
+            {
+                // Validasi input
+                \$validator = Validator::make(\$request->all(), [
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|string|email|max:255|unique:users',
+                    'password' => 'required|string|min:8',
+                ]);
+
+                if (\$validator->fails()) {
+                    return response()->json(['error' => \$validator->errors()], 422);
+                }
+
+                // Simpan data user ke database
+                \$user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                ]);
+
+                return response()->json(['message' => 'User berhasil didaftarkan', 'data' => \$user], 201);
+            }
+
+            /**
+             * Log in an existing user.
+             *
+             * @param  \Illuminate\Http\Request  $request
+             * @return \Illuminate\Http\Response
+             */
+            public function login(Request $request)
+            {
+                // Validasi input
+                \$validator = Validator::make($request->all(), [
+                    'email' => 'required|string|email',
+                    'password' => 'required|string',
+                ]);
+
+                if (\$validator->fails()) {
+                    return response()->json(['error' => \$validator->errors()], 422);
+                }
+
+                // Coba autentikasi user
+                if (!auth()->attempt($request->only('email', 'password'))) {
+                    return response()->json(['error' => 'Unauthorized'], 401);
+                }
+
+                // Generate token
+                \$accessToken = auth()->user()->createToken('authToken')->accessToken;
+
+                return response()->json(['user' => auth()->user(), 'access_token' => \$accessToken]);
+            }
+
+            /**
+             * Log out the authenticated user.
+             *
+             * @param  \Illuminate\Http\Request  $request
+             * @return \Illuminate\Http\Response
+             */
+            public function logout(Request $request)
+            {
+                // Revoke semua token yang terkait dengan pengguna saat ini
+                $request->user()->tokens()->delete();
+
+                return response()->json(['message' => 'Logout berhasil']);
+            }
+        }
+        ";
+        // Simpan API controller ke dalam direktori Controllers/API
+        $apiControllerFileName = "{$namaController}API.php";
+        $apiControllerPath = app_path('Http/Controllers/API/' . $apiControllerFileName);
+        File::put($apiControllerPath, $authContent);
+    }
     function generateRouteWeb($namaController, $folderController)
     {
         // Generate routes untuk web
