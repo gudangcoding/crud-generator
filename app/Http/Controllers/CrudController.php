@@ -56,42 +56,92 @@ class CrudController extends Controller
         $this->generateViewCreate($namaTabel, $kolom, $acuan);
         $this->generateViewEdit($namaTabel, $kolom, $acuan);
         $this->generateViewShow($namaTabel, $kolom, $acuan);
+        $this->generateFakeData($namaTabel, $kolom);
     }
 
     function generateMigration($namaTabel, $kolom, $acuan)
     {
-        //membuat migration
+        // Membuat migration
         $migrationContent = "<?php
 
-            use Illuminate\Database\Migrations\Migration;
-            use Illuminate\Database\Schema\Blueprint;
-            use Illuminate\Support\Facades\Schema;
+        use Illuminate\Database\Migrations\Migration;
+        use Illuminate\Database\Schema\Blueprint;
+        use Illuminate\Support\Facades\Schema;
 
-            class Create" . ucfirst($namaTabel) . "Table extends Migration
+        class Create" . ucfirst($namaTabel) . "Table extends Migration
+        {
+            public function up()
             {
-                public function up()
-                {
-                    Schema::create('$namaTabel', function (Blueprint \$table) {
-                        \$table->id();
-                        \$table->timestamps();
-                        // Buat kolom berdasarkan data kolom yang diterima
-                        foreach ($kolom as \$namaKolom) {
-                            if (in_array(\$namaKolom, ['" . implode("', '", $acuan) . "'])) {
-                                \$table->unsignedBigInteger('\${\$namaKolom}_id');
-                                \$table->foreign('\${\$namaKolom}_id')->references('id')->on('\${\$namaKolom}s')->onDelete('cascade');
-                            } else {
-                                \$table->string(\$namaKolom);
+                Schema::create('$namaTabel', function (Blueprint \$table) {
+                    \$table->id();
+                    \$table->timestamps();
+                    // Buat kolom berdasarkan data kolom yang diterima
+                    foreach ($kolom as \$namaKolom => \$detailKolom) {
+                        \$type = \$detailKolom['type'];
+                        \$length = isset(\$detailKolom['length']) ? \$detailKolom['length'] : null;
+                        \$default = isset(\$detailKolom['default']) ? \$detailKolom['default'] : null;
+
+                        if (in_array(\$namaKolom, ['" . implode("', '", $acuan) . "'])) {
+                            \$table->unsignedBigInteger('\${\$namaKolom}_id');
+                            \$table->foreign('\${\$namaKolom}_id')->references('id')->on('\${\$namaKolom}s')->onDelete('cascade');
+                        } else {
+                            // Tentukan tipe dan panjang data untuk kolom
+                            switch (\$type) {
+                                case 'CHAR':
+                                    \$table->char(\$namaKolom, \$length);
+                                    break;
+                                case 'VARCHAR':
+                                    \$table->string(\$namaKolom, \$length);
+                                    break;
+                                case 'TEXT':
+                                    \$table->text(\$namaKolom);
+                                    break;
+                                case 'INT':
+                                    \$table->integer(\$namaKolom);
+                                    break;
+                                case 'BIGINT':
+                                    \$table->bigInteger(\$namaKolom);
+                                    break;
+                                case 'FLOAT':
+                                    \$table->float(\$namaKolom);
+                                    break;
+                                case 'DOUBLE':
+                                    \$table->double(\$namaKolom);
+                                    break;
+                                case 'DECIMAL':
+                                    \$table->decimal(\$namaKolom);
+                                    break;
+                                case 'DATE':
+                                    \$table->date(\$namaKolom);
+                                    break;
+                                case 'TIME':
+                                    \$table->time(\$namaKolom);
+                                    break;
+                                case 'DATETIME':
+                                    \$table->dateTime(\$namaKolom);
+                                    break;
+                                case 'TIMESTAMP':
+                                    \$table->timestamp(\$namaKolom);
+                                    break;
+                                case 'ENUM':
+                                    // Pastikan Anda memiliki array opsi untuk ENUM
+                                    \$table->enum(\$namaKolom, \$length)->default(\$default);
+                                    break;
+                                default:
+                                    // Jika tipe tidak dikenali, gunakan string sebagai default
+                                    \$table->string(\$namaKolom);
                             }
                         }
-                    });
-                }
-
-                public function down()
-                {
-                    Schema::dropIfExists('$namaTabel');
-                }
+                    }
+                });
             }
-            ";
+
+            public function down()
+            {
+                Schema::dropIfExists('$namaTabel');
+            }
+        }
+        ";
 
         // Simpan migration ke dalam direktori migrations
         $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($namaTabel) . '_table.php';
@@ -99,6 +149,90 @@ class CrudController extends Controller
         File::put($migrationPath, $migrationContent);
     }
 
+
+    function generateFakeData($namaTabel, $kolom)
+    {
+        // Membuat factory
+        $factoryContent = "<?php
+
+            use Faker\Generator as Faker;
+
+            \$factory->define(App\\Models\\" . ucfirst($namaTabel) . "::class, function (Faker \$faker) {
+                return [";
+
+        // Menambahkan definisi factory sesuai dengan tipe data kolom
+        foreach ($kolom as $namaKolom => $detailKolom) {
+            $type = $detailKolom['type'];
+
+            switch ($type) {
+                case 'CHAR':
+                case 'VARCHAR':
+                case 'TEXT':
+                    $factoryContent .= "\n            '$namaKolom' => \$faker->sentence(),";
+                    break;
+                case 'INT':
+                case 'BIGINT':
+                    $factoryContent .= "\n            '$namaKolom' => \$faker->numberBetween(1, 100),";
+                    break;
+                case 'FLOAT':
+                case 'DOUBLE':
+                case 'DECIMAL':
+                    $factoryContent .= "\n            '$namaKolom' => \$faker->randomFloat(2, 0, 100),";
+                    break;
+                case 'DATE':
+                    $factoryContent .= "\n            '$namaKolom' => \$faker->date(),";
+                    break;
+                case 'TIME':
+                    $factoryContent .= "\n            '$namaKolom' => \$faker->time(),";
+                    break;
+                case 'DATETIME':
+                case 'TIMESTAMP':
+                    $factoryContent .= "\n            '$namaKolom' => \$faker->dateTime(),";
+                    break;
+                case 'ENUM':
+                    // Pastikan Anda memiliki array opsi untuk ENUM
+                    $enumOptions = implode("', '", $detailKolom['length']);
+                    $factoryContent .= "\n            '$namaKolom' => \$faker->randomElement(['$enumOptions']),";
+                    break;
+                default:
+                    // Jika tipe tidak dikenali, gunakan string sebagai default
+                    $factoryContent .= "\n            '$namaKolom' => \$faker->word(),";
+            }
+        }
+
+        $factoryContent .= "
+                ];
+            });
+            ";
+
+        // Simpan factory ke dalam direktori factories
+        $factoryFileName = ucfirst($namaTabel) . "Factory.php";
+        $factoryPath = database_path('factories/' . $factoryFileName);
+        File::put($factoryPath, $factoryContent);
+
+        // Tambahkan factory ke DatabaseSeeder.php
+        $databaseSeederPath = database_path('seeders/DatabaseSeeder.php');
+        $databaseSeederContent = File::get($databaseSeederPath);
+
+        // Perbarui DatabaseSeeder.php dengan penambahan factory
+        $factoryImportStatement = "use App\\Models\\" . ucfirst($namaTabel) . ";\n";
+        $factoryFactoryStatement = "        " . ucfirst($namaTabel) . "::factory()->count(10)->create();\n";
+
+        // Periksa apakah sudah ada impor dan pemanggilan factory dalam DatabaseSeeder.php
+        if (strpos($databaseSeederContent, $factoryImportStatement) === false) {
+            // Jika belum, tambahkan impor
+            $databaseSeederContent = str_replace("<?php", "<?php\n\n" . $factoryImportStatement, $databaseSeederContent);
+        }
+
+        // Periksa apakah sudah ada pemanggilan factory dalam DatabaseSeeder.php
+        if (strpos($databaseSeederContent, $factoryFactoryStatement) === false) {
+            // Jika belum, tambahkan pemanggilan factory di dalam fungsi run()
+            $databaseSeederContent = str_replace("public function run()", "public function run()\n    {\n        " . $factoryFactoryStatement, $databaseSeederContent);
+        }
+
+        // Simpan DatabaseSeeder.php
+        File::put($databaseSeederPath, $databaseSeederContent);
+    }
 
     function generateModel($namaModel, $kolom, $relasi)
     {
