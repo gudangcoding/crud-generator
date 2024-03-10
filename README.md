@@ -5,6 +5,7 @@
 <ol>
     <li>Membuat Migration Otomatis</li>
     <li>Membuat Model Otomatis</li>
+    <li>Membuat Relasi Otomatis</li>
     <li>Membuat Controller Otomatis</li>
     <li>Membuat dummy Otomatis</li>
     <li>Membuat API Otomatis</li>
