@@ -29,7 +29,8 @@ class CrudController extends Controller
         // Ambil informasi kolom dari tabel items
         $columns = Schema::getColumnListing($models[0]);
 
-        // echo "Hello World";
+
+        // echo json_encode($columns);
         return view('crud.index', compact('models', 'columns'));
     }
 
@@ -155,19 +156,53 @@ class CrudController extends Controller
                 // Inisialisasi query builder
                 $" . "query = DB::table('$namaTabel');
 
-                // Terapkan filter jika ada
+                // Tentukan kolom primary key
+                $" . "primaryKey = '';
+
+                // Tentukan kolom yang akan ditampilkan
+                $" . "columns = [];
+
                 foreach ($" . "filters as $" . "column => $" . "value) {
                     if ($" . "value) {
-                        $" . "query->where($" . "column, 'like', '%' . $" . "value . '%');
+                        if ($" . "column === 'id') {
+                            $" . "primaryKey = $" . "value;
+                        } else {
+                            $" . "columns[] = $" . "column;
+                            $" . "query->where($" . "column, 'like', '%' . $" . "value . '%');
+                        }
                     }
                 }
 
                 // Eksekusi query untuk mengambil data
-                $" . "data = $" . "query->get();
+                $" . "data = $" . "query->get($" . "columns);
 
-                // Kembalikan data sebagai respons JSON
-                return response()->json($" . "data);
+                // Ubah format data sesuai dengan yang diharapkan oleh DataTables
+                $" . "formattedData = [];
+
+                foreach ($" . "data as $" . "row) {
+                    $" . "checkbox = '<input type=\"checkbox\" value=\"' . $" . "row->\$primaryKey . '\">';
+                    $" . "actions = '
+                        <div class=\"btn-group\">
+                            <button type=\"button\" class=\"btn btn-xs btn-default dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">
+                                <i class=\"fa fa-cogs\"></i> Aksi
+                            </button>
+                            <div class=\"dropdown-menu\">
+                                <a class=\"dropdown-item\" href=\"' . route('produk.edit', $" . "row->\$primaryKey) . '\">Edit</a>
+                                <a class=\"dropdown-item\" href=\"' . route('produk.show', $" . "row->\$primaryKey) . '\">Detail</a>
+                                <div class=\"dropdown-divider\"></div>
+                                <button type=\"button\" onclick=\"deleteData(\' ' . route('produk.destroy', $" . "row->\$primaryKey) . ' \')\" class=\"dropdown-item\">Delete</button>
+                            </div>
+                        </div>
+                    ';
+
+                    $" . "formattedData[] = array_merge((array) $" . "row, ['checkbox' => $" . "checkbox, 'aksi' => $" . "actions]);
+                }
+
+                return response()->json([
+                    'data' => $" . "formattedData
+                ]);
             }
+
 
             /**
              * Menampilkan form untuk membuat data $namaTabel baru.
@@ -378,22 +413,12 @@ class CrudController extends Controller
 
     function generateRouteAPI($namaController, $folderController)
     {
-        // Generate routes untuk web
-        $routeWebContent = "
-            use App\Http\Controllers\\{$namaController};
-            // Web routes
-            Route::resource('$folderController', {$namaController}::class);
-            ";
         // Generate routes untuk API
         $routeApiContent = "
         use App\Http\Controllers\API\\{$namaController}API;
         // API routes
         Route::resource('api/$folderController', {$namaController}API::class);
         ";
-
-        // Simpan route ke dalam file web.php
-        $routePath = base_path('routes/web.php');
-        File::append($routePath, $routeWebContent);
         // Simpan route ke dalam file api.php
         $routePath = base_path('routes/api.php');
         File::append($routePath, $routeApiContent);
@@ -406,103 +431,153 @@ class CrudController extends Controller
         $viewContent = "@extends('layouts.app')
 
         @section('content')
-            <div class=\"card\">
-                <div class=\"card-header\">
-                    <h1>Data $namaTabel</h1>
-                </div>
-                <div class=\"card-body\">
-                    <form id=\"filterForm\">
-                        @csrf
-                        <div class=\"form-row\">
-                            @foreach ($kolom as \$namaKolom)
-                                <div class=\"form-group col\">
-                                    <input type=\"text\" name=\"{{ \$namaKolom }}\" class=\"form-control\" placeholder=\"Filter {{ ucfirst(\$namaKolom) }}\">
-                                </div>
-                            @endforeach
-                            <div class=\"form-group col\">
-                                <button type=\"button\" id=\"applyFilter\" class=\"btn btn-primary\">Apply Filter</button>
-                            </div>
-                        </div>
-                    </form>
-                    <table id=\"dataTable\" class=\"table table-striped table-bordered\">
-                        <thead>
-                            <tr>";
-        // Tambahkan kolom ke dalam header table
-        foreach ($kolom as $namaKolom) {
-            $viewContent .= "
-                                <th>{{ ucfirst('$namaKolom') }}</th>";
-        }
-        $viewContent .= "
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data akan dimasukkan di sini melalui JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
+        <div class=\"card\">
+            <div class=\"card-header\">
+                <h1>Data {{ \$namaTabel }}</h1>
             </div>
+            <div class=\"card-body\">
+                <!-- Tambahkan tombol-tombol untuk tambah data, edit data, dan lihat data -->
+                <div class=\"mb-3\">
+                    <a href=\"{{ route('$folderController.create') }}\" class=\"btn btn-success\">Tambah Data</a>
+                    <button type=\"button\" class=\"btn btn-primary\" id=\"bulkDelete\">Hapus Data Terpilih</button>
+                </div>
+                <form id=\"filterForm\">
+                    @csrf
+                    <div class=\"form-row\">
+                        @foreach ($kolom as \$namaKolom)
+                        <div class=\"form-group col\">
+                            <input type=\"text\" name=\"{{ \$namaKolom }}\" class=\"form-control\" placeholder=\"Filter {{ ucfirst(\$namaKolom) }}\">
+                        </div>
+                        @endforeach
+                        <div class=\"form-group col\">
+                            <button type=\"button\" id=\"applyFilter\" class=\"btn btn-primary\">Apply Filter</button>
+                        </div>
+                    </div>
+                </form>
+                <table id=\"dataTable\" class=\"table table-striped table-bordered\">
+                    <thead>
+                        <tr>
+                            <!-- Tambahkan kolom untuk cek semua -->
+                            <th><input type=\"checkbox\" id=\"selectAll\"></th>
+                            @foreach ($kolom as \$namaKolom)
+                            <th>{{ ucfirst(\$namaKolom) }}</th>
+                            @endforeach
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data akan dimasukkan di sini melalui JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-            <script>
-                $(document).ready(function() {
-                    // Event handler untuk tombol Apply Filter
-                    $('#applyFilter').on('click', function() {
-                        applyFilter();
+        <script>
+            $(document).ready(function() {
+                // Event handler untuk tombol Apply Filter
+                $('#applyFilter').on('click', function() {
+                    applyFilter();
+                });
+
+                // Event handler untuk tombol Hapus Data Terpilih
+                $('#bulkDelete').on('click', function() {
+                    bulkDelete();
+                });
+
+                // Function untuk mengirimkan data filter ke server
+                function applyFilter() {
+                    $.ajax({
+                        url: '{{ route('$folderController.index') }}',
+                        type: 'POST',
+                        data: $('#filterForm').serialize(),
+                        success: function(data) {
+                            table.clear().draw();
+                            table.rows.add(data).draw();
+                        }
+                    });
+                }
+
+                // Function untuk mengirimkan data ID yang dipilih untuk penghapusan bulk
+                function bulkDelete() {
+                    var selectedIds = [];
+
+                    $('input:checked').each(function() {
+                        if ($(this).attr('id') !== 'selectAll') {
+                            selectedIds.push($(this).val());
+                        }
                     });
 
-                    // Function untuk mengirimkan data filter ke server
-                    function applyFilter() {
+                    if (selectedIds.length > 0) {
+                        // Kirim ID yang dipilih ke server untuk penghapusan bulk
                         $.ajax({
-                            url: '{{ route('data.index') }}',
+                            url: '{{ route('$folderController.bulkDelete') }}',
                             type: 'POST',
-                            data: $('#filterForm').serialize(),
-                            success: function(data) {
-                                table.clear().draw();
-                                table.rows.add(data).draw();
-                            }
-                        });
-                    }
-
-                    // Inisialisasi DataTables
-                    var table = $('#dataTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        ajax: {
-                            url: '{{ route('data.index') }}',
-                            type: 'POST', // Ganti tipe ke POST
-                            data: function(d) {
-                                d._token = '{{ csrf_token() }}'; // Sertakan CSRF token
+                            data: {
+                                ids: selectedIds,
+                                _token: '{{ csrf_token() }}'
                             },
-                        },
-                        columns: [";
-        // Tambahkan konfigurasi kolom DataTables
-        foreach ($kolom as $namaKolom) {
-            $viewContent .= "
-                                        { data: '$namaKolom', name: '$namaKolom' },";
-        }
-        $viewContent .= "
-                        ],
-                    });
-
-                    // Menambahkan kolom filter secara dinamis
-                    $('#dataTable thead th').each(function() {
-                        var title = $(this).text();
-                        $(this).html('<input type=\"text\" placeholder=\"Search ' + title + '\" />');
-                    });
-
-                    // Menerapkan filter
-                    table.columns().every(function() {
-                        var that = this;
-
-                        $('input', this.header()).on('keyup change', function() {
-                            if (that.search() !== this.value) {
-                                that
-                                    .search(this.value)
-                                    .draw();
+                            success: function(response) {
+                                // Tindakan setelah penghapusan berhasil
                             }
                         });
+                    } else {
+                        alert('Pilih setidaknya satu item untuk dihapus.');
+                    }
+                }
+
+                // Inisialisasi DataTables
+                var table = $('#dataTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: '{{ route('$folderController.index') }}',
+                        type: 'POST', // Ganti tipe ke POST
+                        data: function(d) {
+                            d._token = '{{ csrf_token() }}'; // Sertakan CSRF token
+                        },
+                    },
+                    columns: [
+                        // Tambahkan kolom checkbox
+                        {
+                            data: 'checkbox',
+                            orderable: false,
+                            searchable: false
+                        },
+                        @foreach ($kolom as \$namaKolom)
+                        {
+                            data: '{{ \$namaKolom }}',
+                            name: '{{ \$namaKolom }}'
+                        },
+                        @endforeach
+                        // Kolom untuk aksi
+                        {
+                            data: 'aksi',
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+                });
+
+                // Menambahkan kolom filter secara dinamis
+                $('#dataTable thead th').each(function() {
+                    var title = $(this).text();
+                    $(this).html('<input type=\"text\" placeholder=\"Search ' + title + '\" />');
+                });
+
+                // Menerapkan filter
+                table.columns().every(function() {
+                    var that = this;
+
+                    $('input', this.header()).on('keyup change', function() {
+                        if (that.search() !== this.value) {
+                            that
+                                .search(this.value)
+                                .draw();
+                        }
                     });
                 });
-            </script>
+            });
+        </script>
         @endsection";
 
         // Simpan view ke dalam direktori resources/views
@@ -511,39 +586,167 @@ class CrudController extends Controller
         File::put($viewPath, $viewContent);
     }
 
+
     function generateViewCreate($namaTabel, $folderController, $kolom)
     {
         $viewContent = "@extends('layouts.app')
 
         @section('content')
+        <div class=\"card\">
+            <div class=\"card-header\">
+                <h1>Create $namaTabel</h1>
+            </div>
+            <div class=\"card-body\">
+                <form id=\"createForm\">
+                    @csrf
+                    <div class=\"form-row\">";
+
+        foreach ($kolom as $namaKolom => $type) {
+            $inputType = '';
+            switch ($type) {
+                case 'text':
+                case 'number':
+                case 'date':
+                case 'time':
+                case 'email':
+                case 'password':
+                    $inputType = "<input type=\"$type\" name=\"$namaKolom\" class=\"form-control\" id=\"$namaKolom\">";
+                    break;
+                case 'checkbox':
+                case 'radio':
+                    $inputType = "<input type=\"$type\" name=\"$namaKolom\" id=\"$namaKolom\">";
+                    break;
+                case 'file':
+                    $inputType = "<input type=\"$type\" name=\"$namaKolom\" class=\"form-control-file\" id=\"$namaKolom\">";
+                    break;
+                case 'textarea':
+                    $inputType = "<textarea name=\"$namaKolom\" class=\"form-control\" id=\"$namaKolom\"></textarea>";
+                    break;
+                case 'select':
+                case 'multiselect':
+                    $inputType = "<select name=\"$namaKolom\" class=\"form-control\" id=\"$namaKolom\">";
+                    // Tambahkan logika untuk option jika dibutuhkan
+                    $inputType .= "</select>";
+                    break;
+                default:
+                    $inputType = "<input type=\"text\" name=\"$namaKolom\" class=\"form-control\" id=\"$namaKolom\">";
+            }
+
+            $viewContent .= "<div class=\"form-group col\">
+                            <label for=\"$namaKolom\">" . ucfirst($namaKolom) . "</label>
+                            {!! $inputType !!}
+                        </div>";
+        }
+
+        $viewContent .= "</div>
+                    <button type=\"submit\" class=\"btn btn-primary\">Submit</button>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            $(document).ready(function() {
+                $('#createForm').on('submit', function(e) {
+                    e.preventDefault();
+                    var formData = $(this).serialize();
+                    $.ajax({
+                        url: '{{ route('$folderController.store') }}',
+                        type: 'POST',
+                        data: formData,
+                        success: function(response) {
+                            $('#exampleModal').modal('hide');
+                            // Tambahkan logika lainnya, seperti menampilkan pesan sukses atau mereset form
+                        },
+                        error: function(xhr) {
+                            // Tambahkan logika untuk menangani kesalahan validasi atau lainnya
+                        }
+                    });
+                });
+            });
+        </script>
+        @endsection";
+
+        // Simpan view ke dalam direktori resources/views
+        $viewFileName = 'create.blade.php';
+        $viewPath = resource_path('views/' . $folderController . '/' . $viewFileName);
+        File::put($viewPath, $viewContent);
+    }
+
+
+    function generateViewEdit($namaTabel, $folderController, $kolom)
+    {
+        $viewContent = "@extends('layouts.app')
+        @section('content')
             <div class=\"card\">
                 <div class=\"card-header\">
-                    <h1>Create $namaTabel</h1>
+                    <h1>Edit $namaTabel</h1>
                 </div>
                 <div class=\"card-body\">
-                    <form id=\"createForm\">
+                    <form id=\"editForm\">
                         @csrf
-                        <div class=\"form-row\">
-                            @foreach ($kolom as \$namaKolom)
-                                <div class=\"form-group col\">
-                                    <label for=\"{{ \$namaKolom }}\">{{ ucfirst(\$namaKolom) }}</label>
-                                    <input type=\"text\" name=\"{{ \$namaKolom }}\" class=\"form-control\" id=\"{{ \$namaKolom }}\">
-                                </div>
-                            @endforeach
-                        </div>
-                        <button type=\"submit\" class=\"btn btn-primary\">Submit</button>
+                        <div class=\"form-row\">";
+        foreach ($kolom as $namaKolom => $type) {
+            switch ($type) {
+                case 'text':
+                case 'number':
+                case 'date':
+                case 'time':
+                case 'email':
+                case 'password':
+                    $inputValue = "<input type=\"$type\" name=\"$namaKolom\" class=\"form-control\" id=\"$namaKolom\" value=\"{{ \$namaTabel->$namaKolom }}\">";
+                    break;
+                case 'checkbox':
+                case 'radio':
+                    $checked = ($namaTabel->$namaKolom == 1) ? 'checked' : '';
+                    $inputValue = "<input type=\"$type\" name=\"$namaKolom\" id=\"$namaKolom\" value=\"1\" $checked>";
+                    break;
+                case 'file':
+                    $inputValue = "<input type=\"$type\" name=\"$namaKolom\" class=\"form-control-file\" id=\"$namaKolom\">";
+                    break;
+                case 'textarea':
+                    $inputValue = "<textarea name=\"$namaKolom\" class=\"form-control\" id=\"$namaKolom\">{{ \$namaTabel->$namaKolom }}</textarea>";
+                    break;
+                case 'select':
+                    $options = ['active', 'inactive']; // Misalnya, ambil dari database atau sesuai kebutuhan
+                    $inputValue = '<select name="' . $namaKolom . '" class="form-control" id="' . $namaKolom . '">';
+                    foreach ($options as $option) {
+                        $selected = ($namaTabel->$namaKolom == $option) ? 'selected' : '';
+                        $inputValue .= '<option value="' . $option . '" ' . $selected . '>' . ucfirst($option) . '</option>';
+                    }
+                    $inputValue .= '</select>';
+                    break;
+                case 'multiselect':
+                    $options = ['admin', 'user']; // Misalnya, ambil dari database atau sesuai kebutuhan
+                    $inputValue = '<select multiple name="' . $namaKolom . '[]" class="form-control" id="' . $namaKolom . '">';
+                    foreach ($options as $option) {
+                        $selected = (in_array($option, explode(',', $namaTabel->$namaKolom))) ? 'selected' : '';
+                        $inputValue .= '<option value="' . $option . '" ' . $selected . '>' . ucfirst($option) . '</option>';
+                    }
+                    $inputValue .= '</select>';
+                    break;
+                default:
+                    $inputValue = "<input type=\"text\" name=\"$namaKolom\" class=\"form-control\" id=\"$namaKolom\" value=\"{{ \$namaTabel->$namaKolom }}\">";
+            }
+
+            $viewContent .= "<div class=\"form-group col\">
+                                    <label for=\"$namaKolom\">{{ ucfirst($namaKolom) }}</label>
+                                    {!! $inputValue !!}
+                                </div>";
+        }
+        $viewContent .= "</div>
+                        <button type=\"submit\" class=\"btn btn-primary\">Update</button>
                     </form>
                 </div>
             </div>
 
             <script>
                 $(document).ready(function() {
-                    $('#createForm').on('submit', function(e) {
+                    $('#editForm').on('submit', function(e) {
                         e.preventDefault();
                         var formData = $(this).serialize();
                         $.ajax({
-                            url: '{{ route('$folderController.store') }}',
-                            type: 'POST',
+                            url: '{{ route('$folderController.update', ['id' => $namaTabel->id]) }}',
+                            type: 'PUT',
                             data: formData,
                             success: function(response) {
                                 $('#exampleModal').modal('hide');
@@ -559,61 +762,11 @@ class CrudController extends Controller
         @endsection";
 
         // Simpan view ke dalam direktori resources/views
-        $viewFileName = 'create.blade.php';
-        $viewPath = resource_path('views/' . $folderController . '/' . $viewFileName);
-        File::put($viewPath, $viewContent);
-    }
-    function generateViewEdit($namaTabel, $folderController, $kolom)
-    {
-        $viewContent = "@extends('layouts.app')
-            @section('content')
-                <div class=\"card\">
-                    <div class=\"card-header\">
-                        <h1>Edit $namaTabel</h1>
-                    </div>
-                    <div class=\"card-body\">
-                        <form id=\"editForm\">
-                            @csrf
-                            <div class=\"form-row\">
-                                @foreach ($kolom as \$namaKolom)
-                                    <div class=\"form-group col\">
-                                        <label for=\"{{ \$namaKolom }}\">{{ ucfirst(\$namaKolom) }}</label>
-                                        <input type=\"text\" name=\"{{ \$namaKolom }}\" class=\"form-control\" id=\"{{ \$namaKolom }}\">
-                                    </div>
-                                @endforeach
-                            </div>
-                            <button type=\"submit\" class=\"btn btn-primary\">Update</button>
-                        </form>
-                    </div>
-                </div>
-
-                <script>
-                    $(document).ready(function() {
-                        $('#editForm').on('submit', function(e) {
-                            e.preventDefault();
-                            var formData = $(this).serialize();
-                            $.ajax({
-                                url: '{{ route('$folderController.update', ['id' => $namaTabel->id]) }}',
-                                type: 'PUT',
-                                data: formData,
-                                success: function(response) {
-                                    $('#exampleModal').modal('hide');
-                                    // Tambahkan logika lainnya, seperti menampilkan pesan sukses atau mereset form
-                                },
-                                error: function(xhr) {
-                                    // Tambahkan logika untuk menangani kesalahan validasi atau lainnya
-                                }
-                            });
-                        });
-                    });
-                </script>
-            @endsection";
-
-        // Simpan view ke dalam direktori resources/views
         $viewFileName = 'edit.blade.php';
         $viewPath = resource_path('views/' . $folderController . '/' . $viewFileName);
         File::put($viewPath, $viewContent);
     }
+
     function generateViewShow($namaTabel, $folderController, $kolom)
     {
         // Contoh, membuat view blade untuk show

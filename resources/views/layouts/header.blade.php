@@ -11,6 +11,7 @@
     <link href="{{ asset('assets/tabler/dist/css/tabler-payments.min.css?1684106062') }}" rel="stylesheet" />
     <link href="{{ asset('assets/tabler/dist/css/tabler-vendors.min.css?1684106062') }}" rel="stylesheet" />
     <link href="{{ asset('assets/tabler/dist/css/demo.min.css?1684106062') }}" rel="stylesheet" />
+    <link href="{{ asset('fontawesome/css/fontawesome.min.css') }}" rel="stylesheet" />
     <script src="{{ asset('assets/tabler/dist/js/jquery.min.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
