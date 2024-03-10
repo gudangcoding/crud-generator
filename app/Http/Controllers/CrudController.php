@@ -234,6 +234,93 @@ class CrudController extends Controller
         File::put($databaseSeederPath, $databaseSeederContent);
     }
 
+    function generatePostmanJson($namaTabel)
+    {
+        // Base URL aplikasi
+        $baseUrl = "http://localhost:8000";
+
+        // Data untuk koleksi Postman
+        $postmanData = [
+            "info" => [
+                "_postman_id" => "unique-id",
+                "name" => "Nama Koleksi",
+                "description" => "Deskripsi Koleksi",
+                "schema" => "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+            ],
+            "item" => [
+                [
+                    "name" => "Create " . ucfirst($namaTabel),
+                    "request" => [
+                        "method" => "POST",
+                        "header" => [],
+                        "body" => [
+                            "mode" => "raw",
+                            "raw" => "{\n    \"key\": \"value\"\n}"
+                        ],
+                        "url" => [
+                            "raw" => $baseUrl . "/api/" . strtolower($namaTabel),
+                            "protocol" => "http",
+                            "host" => ["localhost:8000"],
+                            "path" => ["api", strtolower($namaTabel)]
+                        ]
+                    ],
+                    "response" => []
+                ],
+                [
+                    "name" => "Read " . ucfirst($namaTabel),
+                    "request" => [
+                        "method" => "GET",
+                        "header" => [],
+                        "url" => [
+                            "raw" => $baseUrl . "/api/" . strtolower($namaTabel),
+                            "protocol" => "http",
+                            "host" => ["localhost:8000"],
+                            "path" => ["api", strtolower($namaTabel)]
+                        ]
+                    ],
+                    "response" => []
+                ],
+                [
+                    "name" => "Update " . ucfirst($namaTabel),
+                    "request" => [
+                        "method" => "PUT",
+                        "header" => [],
+                        "body" => [
+                            "mode" => "raw",
+                            "raw" => "{\n    \"key\": \"value\"\n}"
+                        ],
+                        "url" => [
+                            "raw" => $baseUrl . "/api/" . strtolower($namaTabel) . "/{id}",
+                            "protocol" => "http",
+                            "host" => ["localhost:8000"],
+                            "path" => ["api", strtolower($namaTabel), "{id}"]
+                        ]
+                    ],
+                    "response" => []
+                ],
+                [
+                    "name" => "Delete " . ucfirst($namaTabel),
+                    "request" => [
+                        "method" => "DELETE",
+                        "header" => [],
+                        "url" => [
+                            "raw" => $baseUrl . "/api/" . strtolower($namaTabel) . "/{id}",
+                            "protocol" => "http",
+                            "host" => ["localhost:8000"],
+                            "path" => ["api", strtolower($namaTabel), "{id}"]
+                        ]
+                    ],
+                    "response" => []
+                ]
+            ]
+        ];
+
+        // Konversi ke JSON
+        $postmanJson = json_encode($postmanData, JSON_PRETTY_PRINT);
+
+        return $postmanJson;
+    }
+
     function generateModel($namaModel, $kolom, $relasi)
     {
         // Membuat model dengan relasi
