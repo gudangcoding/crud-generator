@@ -44,6 +44,30 @@ class CrudController extends Controller
         $folder_controller = $request->input('folder_controller');
         $buat_controller = $namespace . "\\" . $controller;
         $pluralVariable = "produks";
+
+
+        $this->generateController($namespace, $model, $controller);
+        $this->generateModel($model);
+        $this->generateMigration($model);
+        // echo json_encode($request->all());
+
+    }
+
+    public function generateMigration($model)
+    {
+        // Jalankan perintah artisan untuk membuat migration
+        Artisan::call('make:migration', ['name' => 'create_' . $model . 's_table']);
+        // Mendapatkan instance dari kelas Migrator
+        $migrator = app()->make(Migrator::class);
+        // Mendapatkan daftar migrasi yang belum dijalankan
+        $migrations = $migrator->getMigrationFiles(database_path('migrations'));
+        // Ambil migrasi terbaru dari daftar migrasi yang belum dijalankan
+        $newMigration = end($migrations);
+        // return "Migration baru telah berhasil dibuat: $newMigration";
+    }
+
+    function generateController($namespace, $model, $controller)
+    {
         $content_controller = "<?php
             namespace $namespace;
 
@@ -55,13 +79,13 @@ class CrudController extends Controller
             {
                 public function index()
                 {
-                    $$pluralVariable = $model::all();
-                    return view('{$pluralVariable}.index', compact('{$pluralVariable}'));
+                    $$model = $model::all();
+                    return view('{$model}.index', compact('{$model}'));
                 }
 
                 public function create()
                 {
-                    return view('{$pluralVariable}.create');
+                    return view('{$model}.create');
                 }
 
                 public function store(Request \$request)
@@ -90,7 +114,11 @@ class CrudController extends Controller
                 }
             }
             ";
-        //isi model
+        //generate file controller
+        File::put(app_path('Http/Controllers/' . $controller . '.php'), $content_controller);
+    }
+    function generateModel($model)
+    {
         $modelContent = "<?php
 
             namespace App\Models;
@@ -105,19 +133,8 @@ class CrudController extends Controller
             }
             ";
 
-        //generate file controller
-        File::put(app_path('Http/Controllers/' . $controller . '.php'), $content_controller);
+
         //generate file model
         File::put(app_path('Models/' . $model . '.php'), $modelContent);
-        // Jalankan perintah artisan untuk membuat migration
-        Artisan::call('make:migration', ['name' => 'create_' . $model . 's_table']);
-        // Mendapatkan instance dari kelas Migrator
-        $migrator = app()->make(Migrator::class);
-
-        // Mendapatkan nama migrasi yang terbaru
-        $newMigration = $migrator->getMigrationName();
-
-        // echo json_encode($request->all());
-        echo json_encode($newMigration); //tes
     }
 }
