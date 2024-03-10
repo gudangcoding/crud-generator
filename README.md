@@ -32,7 +32,12 @@
     <li>
         Setting database pada file .env
         <pre>
-           .
+            DB_CONNECTION=mysql
+            DB_HOST=127.0.0.1
+            DB_PORT=3306
+            DB_DATABASE=namadb
+            DB_USERNAME=root
+            DB_PASSWORD=
         </pre>
     </li>
     <li>
