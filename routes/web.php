@@ -22,4 +22,5 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/crud', [App\Http\Controllers\CrudController::class, 'index'])->name('crud');
+Route::post('/crud/generate', [App\Http\Controllers\CrudController::class, 'generate'])->name('crud.generate');
 Route::get('/router', [App\Http\Controllers\RouteController::class, 'index'])->name('router');
