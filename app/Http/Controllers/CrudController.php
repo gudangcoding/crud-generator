@@ -36,50 +36,66 @@ class CrudController extends Controller
 
     function generate(Request $request)
     {
-        // Mengambil data yang diterima dari form
+        dd($request->all());
+
+        // input satuan
         $namaTabel = $request->input('nama_tabel');
         $namaModel = $request->input('nama_model');
         $namaController = $request->input('nama_controller');
         $folderController = $request->input('folder_controller');
-        // Ambil data kolom yang dibuat dari form
+        $buat_dummy = $request->input('buat_dummy');
+        $batasi = $request->input('batasi');
+        $api = $request->input('api');
+        //input array
         $kolom = $request->input('nama_kolom');
         // Ambil data relasi dan acuan yang dibuat dari form
         $relasi = $request->input('relasi');
         $acuan = $request->input('acuan');
+
+        $type = $request->input('type_data');
+        $inputType = $request->input('inputType');
+        $lengthData = $request->input('lengthData');
+        $additionalInput = $request->input('additionalInput');
+        $manualInput = $request->input('manualInput');
+        $dbInput = $request->input('dbInput');
+        $wajib = $request->input('wajib');
+
         //ppanggil fungsi yang sudah dibuat
-        $this->generateMigration($namaTabel, $kolom, $acuan);
-        $this->generateModel($namaTabel, $kolom, $acuan);
-        $this->generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController);
-        $this->generateControllerAPI($namaTabel, $namaModel, $namaController, $folderController);
-        $this->generateAuthApi($namaController, $folderController);
-        $this->generateRouteWeb($namaController, $folderController);
-        $this->generateRouteAPI($namaController, $folderController);
-        $this->generateViewIndex($namaTabel, $kolom, $acuan);
-        $this->generateViewCreate($namaTabel, $kolom, $acuan);
-        $this->generateViewEdit($namaTabel, $kolom, $acuan);
-        $this->generateViewShow($namaTabel, $kolom, $acuan);
-        $this->generateFakeData($namaTabel, $kolom);
-        $this->generatePostmanJson($namaTabel);
+        $this->generateMigration($namaTabel, $kolom, $type, $acuan, $lengthData, $additionalInput, $manualInput, $dbInput, $wajib);
+        // $this->generateModel($namaTabel, $kolom, $acuan);
+        // $this->generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController);
+        // $this->generateControllerAPI($namaTabel, $namaModel, $namaController, $folderController);
+        // $this->generateAuthApi($namaController, $folderController);
+        // $this->generateRouteWeb($namaController, $folderController);
+        // $this->generateRouteAPI($namaController, $folderController);
+        // $this->generateViewIndex($namaTabel, $kolom, $acuan);
+        // $this->generateViewCreate($namaTabel, $kolom, $acuan);
+        // $this->generateViewEdit($namaTabel, $kolom, $acuan);
+        // $this->generateViewShow($namaTabel, $kolom, $acuan);
+        // $this->generateFakeData($namaTabel, $kolom);
+        // $this->generatePostmanJson($namaTabel);
     }
 
-    function generateMigration($namaTabel, $kolom, $acuan)
+    function generateMigration($namaTabel, $kolom, $type, $acuan, $lengthData, $additionalInput, $manualInput, $dbInput, $wajib)
     {
         // Membuat migration
         $migrationContent = "<?php
 
-        use Illuminate\Database\Migrations\Migration;
-        use Illuminate\Database\Schema\Blueprint;
-        use Illuminate\Support\Facades\Schema;
-        use Ramsey\Uuid\Uuid;
+    use Illuminate\Database\Migrations\Migration;
+    use Illuminate\Database\Schema\Blueprint;
+    use Illuminate\Support\Facades\Schema;
+    use Ramsey\Uuid\Uuid;
 
-        class Create" . ucfirst($namaTabel) . "Table extends Migration
+    class Create" . ucfirst($namaTabel) . "Table extends Migration
+    {
+        public function up()
         {
-            public function up()
-            {
-                Schema::create('$namaTabel', function (Blueprint \$table) {
-                    \$table->uuid('id')->primary();
-                    \$table->timestamps();
-                    \$table->softDeletes(); // Menambahkan soft deletes
+            Schema::create('$namaTabel', function (Blueprint \$table) {
+                \$table->uuid('id')->primary();
+                \$table->timestamps();
+                \$table->softDeletes(); // Menambahkan soft deletes
+
+                if (!empty($kolom) && !empty($acuan)) {
                     // Buat kolom berdasarkan data kolom yang diterima
                     foreach ($kolom as \$namaKolom => \$detailKolom) {
                         \$type = \$detailKolom['type'];
@@ -91,12 +107,12 @@ class CrudController extends Controller
                             \$table->foreign('\${\$namaKolom}_id')->references('id')->on('\${\$namaKolom}s')->onDelete('cascade');
                         } else {
                             // Tentukan tipe dan panjang data untuk kolom
-                            switch (\$type) {
+                            switch ($type) {
                                 case 'CHAR':
-                                    \$table->char(\$namaKolom, \$length);
+                                    \$table->char(\$namaKolom, $lengthData);
                                     break;
                                 case 'VARCHAR':
-                                    \$table->string(\$namaKolom, \$length);
+                                    \$table->string(\$namaKolom, $lengthData);
                                     break;
                                 case 'TEXT':
                                     \$table->text(\$namaKolom);
@@ -135,24 +151,32 @@ class CrudController extends Controller
                                 default:
                                     // Jika tipe tidak dikenali, gunakan string sebagai default
                                     \$table->string(\$namaKolom);
+                                    break;
                             }
                         }
                     }
-                });
-            }
-
-            public function down()
-            {
-                Schema::dropIfExists('$namaTabel');
-            }
+                } else {
+                    // Tambahkan tindakan yang sesuai di sini, seperti melemparkan pengecualian atau memberikan pesan kesalahan
+                    // Tidak ada kolom acuan yang dipilih, berikan pesan kesalahan atau tindakan yang sesuai
+                }
+            });
         }
-        ";
+
+        public function down()
+        {
+            Schema::dropIfExists('$namaTabel');
+        }
+    }
+    ";
 
         // Simpan migration ke dalam direktori migrations
         $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($namaTabel) . '_table.php';
         $migrationPath = database_path('migrations/' . $migrationFileName);
         File::put($migrationPath, $migrationContent);
     }
+
+
+
 
 
     function generateFakeData($namaTabel, $kolom)

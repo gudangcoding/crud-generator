@@ -28,15 +28,15 @@
                                 placeholder="Isi jika controller di buat dalam folder">
                         </div>
                         <div class="col-1 mt-5">
-                            <input type="checkbox" name="buat_dummy" class="form-check-input">
+                            <input type="checkbox" name="buat_dummy" class="form-check-input" checked>
                             <label for="folder_controller">Dummy Data?</label>
                         </div>
                         <div class="col-1 mt-5">
-                            <input type="checkbox" name="batasi" class="form-check-input">
+                            <input type="checkbox" name="batasi" class="form-check-input" checked>
                             <label for="batasi">Autentikasi?</label>
                         </div>
                         <div class="col-1 mt-5">
-                            <input type="checkbox" name="api" class="form-check-input">
+                            <input type="checkbox" name="api" class="form-check-input" checked>
                             <label for="api">Api?</label>
                         </div>
                     </div>
@@ -60,17 +60,16 @@
     <script>
         // Logika untuk menambahkan baris baru
         $(document).on('click', '#addRow', function() {
-            var columnsContainer = $('#columnsContainer');
+            var columnsContainer = $('form');
             var newRow = $('<div class="columnRow">' +
                 '<div class="row mt-3 mb-3">' +
                 '<div class="col-2">' +
                 '<label for="nama_kolom">Nama Kolom</label>' +
-                '<input type="text" class="form-control" name="nama_kolom" id="nama_kolom" placeholder="nama kolom">' +
+                '<input type="text" class="form-control" name="nama_kolom[]">' +
                 '</div>' +
                 '<div class="col-2">' +
                 '<label for="type_data">Type Data</label>' +
-                '<select class="form-select" name="type_data" id="type_data">' +
-                '<option selected>Select one</option>' +
+                '<select class="form-select" name="type_data[]">' +
                 '<option value="CHAR">CHAR</option>' +
                 '<option value="VARCHAR">VARCHAR</option>' +
                 '<option value="TEXT">TEXT</option>' +
@@ -87,13 +86,12 @@
                 '</select>' +
                 '</div>' +
                 '<div class="col-1">' +
-                '<label for="Panjang Data">Panjang Data</label>' +
-                '<input type="text" class="form-control" name="panjang" id="panjang">' +
+                '<label>Panjang Data</label>' +
+                '<input type="text" class="form-control" name="lengthData[]">' +
                 '</div>' +
                 '<div class="col-1">' +
                 '<label for="inputType">Jenis Input</label>' +
-                '<select class="form-select inputType" name="inputType" id="inputType">' +
-                '<option selected>Select one</option>' +
+                '<select class="form-select inputType" name="inputType[]">' +
                 '<option value="text">Text</option>' +
                 '<option value="number">Number</option>' +
                 '<option value="date">Date</option>' +
@@ -110,7 +108,7 @@
                 '</div>' +
                 '<div class="col-2 additionalInput" style="display:none;">' +
                 '<label for="additionalInput">Additional Input</label>' +
-                '<select class="form-select" name="additionalInput" id="additionalInput">' +
+                '<select class="form-select" name="additionalInput[]">' +
                 '<option value="">Manual</option>' +
                 '<option value="DB">Database</option>' +
                 '</select>' +
@@ -118,13 +116,13 @@
                 '<div class="additionalInput manualInput" style="display:none;">' +
                 '<div class="col-2">' +
                 '<label for="manualInput">Manual Input</label>' +
-                '<input type="text" class="form-control" name="manualInput" id="manualInput" placeholder="Separated by comma">' +
+                '<input type="text" class="form-control" name="manualInput[]">' +
                 '</div>' +
                 '</div>' +
                 '<div class="additionalInput dbInput" style="display:none;">' +
                 '<div class="col-2">' +
                 '<label for="dbInput">Database Input</label>' +
-                '<select class="form-select" name="dbInput" id="dbInput">' +
+                '<select class="form-select" name="dbInput[]" >' +
                 @foreach ($columns as $column)
                     '<option value="{{ $column }}">{{ $column }}</option>' +
                 @endforeach
@@ -133,7 +131,7 @@
                 '</div>' +
                 '<div class="col-2">' +
                 '<label for="relasi">Relasi Model</label>' +
-                '<select class="form-select" name="relasi" id="relasi">' +
+                '<select class="form-select" name="relasi[]">' +
                 '<option selected>Select one</option>' +
                 '@foreach ($models as $model)' +
                 '<option value="{{ $model }}">{{ $model }}</option>' +
@@ -142,7 +140,7 @@
                 '</div>' +
                 '<div class="col-2">' +
                 '<label for="acuan">Kolom Acuan</label>' +
-                '<select class="form-select" name="acuan" id="acuan">' +
+                '<select class="form-select" name="acuan[]">' +
                 '<option selected>Select one</option>' +
                 @foreach ($columns as $column)
                     '<option value="{{ $column }}">{{ $column }}</option>' +
@@ -150,8 +148,8 @@
                 '</select>' +
                 '</div>' +
                 '<div class="col-1 mt-5">' +
-                '<input type="checkbox" name="wajib" class="form-check-input">' +
-                '<label for="folder_controller">Wajib?</label>' +
+                '<input type="checkbox" name="wajib[]" class="form-check-input" checked>' +
+                '<label for="folder_controller"> Wajib?</label>' +
                 '</div>' +
                 '<div class="col-1 mt-3">' +
                 '<button type="button" class="btn btn-danger deleteRow"><i class="fa fa-trash"></i></button>' +
@@ -204,20 +202,20 @@
 
         $('#create').click(function(e) {
             e.preventDefault();
-            //ajax jquery post ke CrudController create
+            var formDataArray = $('form').serializeArray();
+            console.log(formDataArray);
+            // Memformat data menjadi objek FormData
+            var formData = {};
+            $.each(formDataArray, function(index, field) {
+                formData[field.name] = field.value;
+            });
+
+            // Ajax post ke CrudController create
             $.ajax({
                 url: "{{ route('crud.generate') }}",
                 method: "POST",
                 dataType: "json",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    nama_tabel: $('input[name="nama_tabel"]').val(),
-                    nama_model: $('input[name="nama_model"]').val(),
-                    nama_controller: $('input[name="nama_controller"]').val(),
-                    folder_controller: $('input[name="folder_controller"]').val(),
-                    batasi: $('input[name="batasi"]').val(),
-                    api: $('input[name="api"]').val(),
-                },
+                data: formData,
                 success: function(response) {
                     console.log(response);
                 }
