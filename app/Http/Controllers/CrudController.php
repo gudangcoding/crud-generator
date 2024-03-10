@@ -118,6 +118,6 @@ class CrudController extends Controller
         $newMigration = $migrator->getMigrationName();
 
         // echo json_encode($request->all());
-        echo json_encode($newMigration);
+        echo json_encode($newMigration); //tes
     }
 }
