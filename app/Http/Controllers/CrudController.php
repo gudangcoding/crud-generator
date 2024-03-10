@@ -34,12 +34,27 @@ class CrudController extends Controller
         return view('crud.index', compact('models', 'columns'));
     }
 
+
+
+    public function tampiKolom(Request $request)
+    {
+        $modelName = $request->input('modelName');
+
+        // Dapatkan informasi kolom dari tabel dalam model
+        $modelInstance = app()->make($modelName);
+        $modelTableName = $modelInstance->getTable();
+        $columns = Schema::getColumnListing($modelTableName);
+
+        return $columns;
+    }
+
     function generate(Request $request)
     {
-        dd($request->all());
+        //dd($request->all());
 
         // input satuan
         $namaTabel = $request->input('nama_tabel');
+        $enum = $request->input('enum');
         $namaModel = $request->input('nama_model');
         $namaController = $request->input('nama_controller');
         $folderController = $request->input('folder_controller');
@@ -47,7 +62,7 @@ class CrudController extends Controller
         $batasi = $request->input('batasi');
         $api = $request->input('api');
         //input array
-        $kolom = $request->input('nama_kolom');
+        $kolom = $request->input('kolom');
         // Ambil data relasi dan acuan yang dibuat dari form
         $relasi = $request->input('relasi');
         $acuan = $request->input('acuan');
@@ -61,7 +76,7 @@ class CrudController extends Controller
         $wajib = $request->input('wajib');
 
         //ppanggil fungsi yang sudah dibuat
-        $this->generateMigration($namaTabel, $kolom, $type, $acuan, $lengthData, $additionalInput, $manualInput, $dbInput, $wajib);
+        $this->generateMigration($namaTabel, $kolom, $type, $enum, $lengthData);
         // $this->generateModel($namaTabel, $kolom, $acuan);
         // $this->generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController);
         // $this->generateControllerAPI($namaTabel, $namaModel, $namaController, $folderController);
@@ -76,104 +91,82 @@ class CrudController extends Controller
         // $this->generatePostmanJson($namaTabel);
     }
 
-    function generateMigration($namaTabel, $kolom, $type, $acuan, $lengthData, $additionalInput, $manualInput, $dbInput, $wajib)
+    function generateMigration($namaTabel, $kolom, $type, $lengthData = 255, $enum)
     {
-        // Membuat migration
-        $migrationContent = "<?php
+        $tabel = $namaTabel . "s";
+        $content = "<?php
 
-    use Illuminate\Database\Migrations\Migration;
-    use Illuminate\Database\Schema\Blueprint;
-    use Illuminate\Support\Facades\Schema;
-    use Ramsey\Uuid\Uuid;
+        use Illuminate\Database\Migrations\Migration;
+        use Illuminate\Database\Schema\Blueprint;
+        use Illuminate\Support\Facades\Schema;
+        use Ramsey\Uuid\Uuid;
 
-    class Create" . ucfirst($namaTabel) . "Table extends Migration
-    {
-        public function up()
+        class Create" . ucfirst($namaTabel) . "Table extends Migration
         {
-            Schema::create('$namaTabel', function (Blueprint \$table) {
-                \$table->uuid('id')->primary();
-                \$table->timestamps();
-                \$table->softDeletes(); // Menambahkan soft deletes
+            public function up()
+            {
+                Schema::create('$tabel', function (Blueprint \$table) {\n";
+        $content .= "\$table->uuid('id')->primary();\n";
+        $content .= "\$table->timestamps();\n";
+        $content .= "\$table->softDeletes(); // Menambahkan soft deletes\n";
 
-                if (!empty($kolom) && !empty($acuan)) {
-                    // Buat kolom berdasarkan data kolom yang diterima
-                    foreach ($kolom as \$namaKolom => \$detailKolom) {
-                        \$type = \$detailKolom['type'];
-                        \$length = isset(\$detailKolom['length']) ? \$detailKolom['length'] : null;
-                        \$default = isset(\$detailKolom['default']) ? \$detailKolom['default'] : null;
-
-                        if (in_array(\$namaKolom, ['" . implode("', '", $acuan) . "'])) {
-                            \$table->unsignedBigInteger('\${\$namaKolom}_id');
-                            \$table->foreign('\${\$namaKolom}_id')->references('id')->on('\${\$namaKolom}s')->onDelete('cascade');
-                        } else {
-                            // Tentukan tipe dan panjang data untuk kolom
-                            switch ($type) {
-                                case 'CHAR':
-                                    \$table->char(\$namaKolom, $lengthData);
-                                    break;
-                                case 'VARCHAR':
-                                    \$table->string(\$namaKolom, $lengthData);
-                                    break;
-                                case 'TEXT':
-                                    \$table->text(\$namaKolom);
-                                    break;
-                                case 'INT':
-                                    \$table->integer(\$namaKolom);
-                                    break;
-                                case 'BIGINT':
-                                    \$table->bigInteger(\$namaKolom);
-                                    break;
-                                case 'FLOAT':
-                                    \$table->float(\$namaKolom);
-                                    break;
-                                case 'DOUBLE':
-                                    \$table->double(\$namaKolom);
-                                    break;
-                                case 'DECIMAL':
-                                    \$table->decimal(\$namaKolom);
-                                    break;
-                                case 'DATE':
-                                    \$table->date(\$namaKolom);
-                                    break;
-                                case 'TIME':
-                                    \$table->time(\$namaKolom);
-                                    break;
-                                case 'DATETIME':
-                                    \$table->dateTime(\$namaKolom);
-                                    break;
-                                case 'TIMESTAMP':
-                                    \$table->timestamp(\$namaKolom);
-                                    break;
-                                case 'ENUM':
-                                    // Pastikan Anda memiliki array opsi untuk ENUM
-                                    \$table->enum(\$namaKolom, \$length)->default(\$default);
-                                    break;
-                                default:
-                                    // Jika tipe tidak dikenali, gunakan string sebagai default
-                                    \$table->string(\$namaKolom);
-                                    break;
-                            }
-                        }
-                    }
-                } else {
-                    // Tambahkan tindakan yang sesuai di sini, seperti melemparkan pengecualian atau memberikan pesan kesalahan
-                    // Tidak ada kolom acuan yang dipilih, berikan pesan kesalahan atau tindakan yang sesuai
-                }
-            });
+        foreach ($kolom as $kol => $detailKolom) {
+            $content .= "\$table->" . $type[$kol] . "('$kol');\n";
+            switch ($type) {
+                case 'char':
+                    $content .= "\$table->string('$kol',$lengthData);\n";
+                    break;
+                case 'varchar':
+                    $content .= "\$table->string('$kol',$lengthData);\n";
+                    break;
+                case 'text':
+                    $content .= "\$table->text('$kol');\n";
+                    break;
+                case 'int':
+                    $content .= "\$table->integer('$kol',$lengthData);\n";
+                    break;
+                case 'bigint':
+                    $content .= "\$table->bigInteger('$kol',$lengthData);\n";
+                    break;
+                case 'float':
+                    $content .= "\$table->float('$kol');\n";
+                    break;
+                case 'double':
+                    $content .= "\$table->double('$kol');\n";
+                    break;
+                case 'decimal':
+                    $content .= "\$table->decimal('$kol');\n";
+                    break;
+                case 'date':
+                    $content .= "\$table->date('$kol');\n";
+                    break;
+                case 'time':
+                    $content .= "\$table->time('$kol');\n";
+                    break;
+                case 'datetime':
+                    $content .= "\$table->dateTime('$kol');\n";
+                    break;
+                case 'timestamp':
+                    $content .= "\$table->timestamp('$kol');\n";
+                    break;
+                case 'enum':
+                    $content .= "\$table->enum($kol, [$enum])->default(\$default);\n";
+                    break;
+                default:
+                    $content .= "\$table->string('$kol');\n";
+                    break;
+            }
         }
 
-        public function down()
-        {
-            Schema::dropIfExists('$namaTabel');
-        }
-    }
-    ";
-
+        $content .= "
+                });\n
+            }\n";
         // Simpan migration ke dalam direktori migrations
-        $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($namaTabel) . '_table.php';
+        $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($namaTabel) . '_table.txt';
         $migrationPath = database_path('migrations/' . $migrationFileName);
-        File::put($migrationPath, $migrationContent);
+        File::put($migrationPath, $content);
     }
+
 
 
 

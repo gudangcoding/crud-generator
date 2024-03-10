@@ -64,30 +64,65 @@
             var newRow = $('<div class="columnRow">' +
                 '<div class="row mt-3 mb-3">' +
                 '<div class="col-2">' +
-                '<label for="nama_kolom">Nama Kolom</label>' +
-                '<input type="text" class="form-control" name="nama_kolom[]">' +
+                '<label for="kolom">Nama Kolom</label>' +
+                '<input type="text" class="form-control" name="kolom[]">' +
                 '</div>' +
                 '<div class="col-2">' +
-                '<label for="type_data">Type Data</label>' +
-                '<select class="form-select" name="type_data[]">' +
-                '<option value="CHAR">CHAR</option>' +
-                '<option value="VARCHAR">VARCHAR</option>' +
-                '<option value="TEXT">TEXT</option>' +
-                '<option value="INT">INT</option>' +
-                '<option value="BIGINT">BIGINT</option>' +
-                '<option value="FLOAT">FLOAT</option>' +
-                '<option value="DOUBLE">DOUBLE</option>' +
-                '<option value="DECIMAL">DECIMAL</option>' +
-                '<option value="DATE">DATE</option>' +
-                '<option value="TIME">TIME</option>' +
-                '<option value="DATETIME">DATETIME</option>' +
-                '<option value="TIMESTAMP">TIMESTAMP</option>' +
-                '<option value="ENUM">ENUM</option>' +
+                '<label for="type_data">Type</label>' +
+                '<select class="form-select dataType" name="type_data[]">' +
+                '<option value="char">CHAR</option>' +
+                '<option value="varchar">VARCHAR</option>' +
+                '<option value="text">TEXT</option>' +
+                '<option value="int">INT</option>' +
+                '<option value="bigint">BIGINT</option>' +
+                '<option value="float">FLOAT</option>' +
+                '<option value="double">DOUBLE</option>' +
+                '<option value="decimal">DECIMAL</option>' +
+                '<option value="date">DATE</option>' +
+                '<option value="time">TIME</option>' +
+                '<option value="datetime">DATETIME</option>' +
+                '<option value="timestamp">TIMESTAMP</option>' +
+                '<option value="enum">ENUM</option>' +
+                '</select>' +
+                '<div class="enum">' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-1">' +
+                '<label>Length</label>' +
+                '<input type="text" class="form-control" name="lengthData[]">' +
+                '</div>' +
+                '<div class="col-1">' +
+                '<label>Decimal</label>' +
+                '<input type="text" class="form-control" name="decimal[]">' +
+                '</div>' +
+                '<div class="col-1">' +
+                '<label>Default</label>' +
+                '<select class="form-select inputType" name="default[]">' +
+                '<option value="nullable">Null</option>' +
+                '<option value="">Empty</option>' +
+                '<option value="Unique">Unique</option>' +
+                '</select>' +
+                '</div>' +
+
+                '<div class="col-1">' +
+                '<label for="relasi">Relasi Model</label>' +
+                '<select class="form-select relasi" name="relasi[]">' +
+                '<option selected>Pilih</option>' +
+
+                @foreach ($models as $model)
+                    '<option value="App\\Models\\{{ $model }}">{{ $model }}</option>' +
+                @endforeach
+
                 '</select>' +
                 '</div>' +
                 '<div class="col-1">' +
-                '<label>Panjang Data</label>' +
-                '<input type="text" class="form-control" name="lengthData[]">' +
+                '<label for="acuan">Kolom Acuan</label>' +
+                '<select class="form-select acuan" name="acuan[]">' +
+                '<option selected>Pilih</option>' +
+                @foreach ($columns as $column)
+                    '<option value="{{ $column }}">{{ $column }}</option>' +
+                @endforeach
+                '</select>' +
                 '</div>' +
                 '<div class="col-1">' +
                 '<label for="inputType">Jenis Input</label>' +
@@ -105,22 +140,22 @@
                 '<option value="select">Select</option>' +
                 '<option value="multiselect">Multiselect</option>' +
                 '</select>' +
-                '</div>' +
-                '<div class="col-2 additionalInput" style="display:none;">' +
-                '<label for="additionalInput">Additional Input</label>' +
+                '<div class="col-12 additionalInput" style="display:none;">' +
+                '<br>' +
                 '<select class="form-select" name="additionalInput[]">' +
-                '<option value="">Manual</option>' +
+                '<option value="">Select</option>' +
+                '<option value="Manual">Manual</option>' +
                 '<option value="DB">Database</option>' +
                 '</select>' +
                 '</div>' +
-                '<div class="additionalInput manualInput" style="display:none;">' +
-                '<div class="col-2">' +
+                '<div class="manualInput" style="display:none;">' +
+                '<div class="col-12 manualInput">' +
                 '<label for="manualInput">Manual Input</label>' +
                 '<input type="text" class="form-control" name="manualInput[]">' +
                 '</div>' +
                 '</div>' +
-                '<div class="additionalInput dbInput" style="display:none;">' +
-                '<div class="col-2">' +
+                '<div class="dbInput" style="display:none;">' +
+                '<div class="col-12">' +
                 '<label for="dbInput">Database Input</label>' +
                 '<select class="form-select" name="dbInput[]" >' +
                 @foreach ($columns as $column)
@@ -129,24 +164,8 @@
                 '</select>' +
                 '</div>' +
                 '</div>' +
-                '<div class="col-2">' +
-                '<label for="relasi">Relasi Model</label>' +
-                '<select class="form-select" name="relasi[]">' +
-                '<option selected>Select one</option>' +
-                '@foreach ($models as $model)' +
-                '<option value="{{ $model }}">{{ $model }}</option>' +
-                '@endforeach' +
-                '</select>' +
                 '</div>' +
-                '<div class="col-2">' +
-                '<label for="acuan">Kolom Acuan</label>' +
-                '<select class="form-select" name="acuan[]">' +
-                '<option selected>Select one</option>' +
-                @foreach ($columns as $column)
-                    '<option value="{{ $column }}">{{ $column }}</option>' +
-                @endforeach
-                '</select>' +
-                '</div>' +
+
                 '<div class="col-1 mt-5">' +
                 '<input type="checkbox" name="wajib[]" class="form-check-input" checked>' +
                 '<label for="folder_controller"> Wajib?</label>' +
@@ -161,6 +180,45 @@
         });
 
         // Menampilkan input tambahan berdasarkan pilihan jenis input
+        $(document).on('change', '.dataType', function() {
+            var selectedOption = $(this).val();
+            var cekbaris = $(this).closest('.columnRow').find('.enum');
+            cekbaris.hide();
+            if (selectedOption === 'enum') {
+                cekbaris.append(
+                    '<input type="text" class="form-control" name="enum[]" placeholder="Pisah dengan koma">'
+                );
+
+                cekbaris.show();
+            }
+        });
+
+        $(document).on('change', '.relasi', function() {
+            var selectedOption = $(this).val();
+            var cekbaris = $(this).closest('.columnRow').find('.acuan');
+            cekbaris.empty(); // Kosongkan elemen select sebelum menambahkan opsi baru
+            cekbaris.hide();
+            // Kirim permintaan Ajax untuk mendapatkan informasi kolom
+            $.ajax({
+                url: '/crud/getkolom', // Sesuaikan dengan route yang Anda tentukan di web.php
+                type: 'POST',
+                data: {
+                    modelName: selectedOption,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(columns) {
+                    for (var i = 0; i < columns.length; i++) {
+                        cekbaris.append('<option value="' + columns[i] + '">' + columns[i] +
+                            '</option>');
+                    }
+
+                    // Tampilkan elemen select
+                    cekbaris.show();
+                }
+            });
+        });
+
+
         $(document).on('change', '.inputType', function() {
             var selectedOption = $(this).val();
             var additionalInputContainer = $(this).closest('.columnRow').find('.additionalInput');
