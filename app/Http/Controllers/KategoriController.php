@@ -9,13 +9,13 @@
             {
                 public function index()
                 {
-                    $produks = Kategori::all();
-                    return view('produks.index', compact('produks'));
+                    $Kategori = Kategori::all();
+                    return view('Kategori.index', compact('Kategori'));
                 }
 
                 public function create()
                 {
-                    return view('produks.create');
+                    return view('Kategori.create');
                 }
 
                 public function store(Request $request)
