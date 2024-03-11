@@ -258,24 +258,22 @@
             $('input[name="folder_controller"]').val(nama + "/" + nama_controller);
         });
 
-        $('#create').click(function(e) {
-            e.preventDefault();
-            var formDataArray = $('form').serializeArray();
-            console.log(formDataArray);
-            // Memformat data menjadi objek FormData
-            var formData = {};
-            $.each(formDataArray, function(index, field) {
-                formData[field.name] = field.value;
-            });
 
-            // Ajax post ke CrudController create
+        $(document).on('click', '#create', function() {
+            var formData = $('form').serializeArray();
+            // console.log(JSON.stringify(formData));
             $.ajax({
-                url: "{{ route('crud.generate') }}",
-                method: "POST",
-                dataType: "json",
+                url: '{{ route('crud.generate') }}', // Ganti dengan URL endpoint Anda
+                type: 'POST',
                 data: formData,
+                dataType: 'json',
                 success: function(response) {
-                    console.log(response);
+                    console.log(response.message);
+                    // Tambahkan logika atau tindakan lain setelah berhasil menyimpan data
+                },
+                error: function(error) {
+                    console.error('Error:', error);
+                    // Handle error
                 }
             });
         });

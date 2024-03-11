@@ -1,4 +1,5 @@
-$migrationContent = "<?php
+$tabel = $namaTabel . "s";
+$content = "<?php
 
             use Illuminate\Database\Migrations\Migration;
             use Illuminate\Database\Schema\Blueprint;
@@ -89,6 +90,105 @@ $migrationContent = "<?php
             ";
 
         // Simpan migration ke dalam direktori migrations
-        $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($namaTabel) . '_table.txt';
+        $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($tabel) . '_table.txt';
         $migrationPath = database_path('migrations/' . $migrationFileName);
-        File::put($migrationPath, $migrationContent);
+        File::put($migrationPath, $content);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$tabel = $namaTabel . "s";
+        $content = "<?php
+
+        use Illuminate\Database\Migrations\Migration;
+        use Illuminate\Database\Schema\Blueprint;
+        use Illuminate\Support\Facades\Schema;
+        use Ramsey\Uuid\Uuid;
+
+        class Create" . ucfirst($namaTabel) . "Table extends Migration
+        {
+            public function up()
+            {
+                Schema::create('$tabel', function (Blueprint \$table) {\n";
+        $content .= "\$table->uuid('id')->primary();\n";
+        $content .= "\$table->timestamps();\n";
+        $content .= "\$table->softDeletes(); // Menambahkan soft deletes\n";
+        if (!empty($kolom)) {
+            foreach ($kolom as $kol => $detailKolom) {
+                //jika ada relasi
+                if (in_array($kol, ['" . implode("', '", $acuan) . "'])) {
+                    $content .= "\$table->unsignedBigInteger('\${\$kol}_id');";
+                    $content .= "\$table->foreign('\${\$kol}_id')->references('id')->on('\${\$kol}s')->onDelete('cascade');";
+                    $content .= "\n";
+                } else {
+                    //jika  tidak ada relasi
+                    switch ($type) {
+                        case 'char':
+                            $content .= "\$table->string('$kol',$lengthData);\n";
+                            break;
+                        case 'varchar':
+                            $content .= "\$table->string('$kol',$lengthData);\n";
+                            break;
+                        case 'text':
+                            $content .= "\$table->text('$detailKolom');\n";
+                            break;
+                        case 'int':
+                            $content .= "\$table->integer('$kol',$lengthData);\n";
+                            break;
+                        case 'bigint':
+                            $content .= "\$table->bigInteger('$kol',$lengthData);\n";
+                            break;
+                        case 'float':
+                            $content .= "\$table->float('$kol');\n";
+                            break;
+                        case 'double':
+                            $content .= "\$table->double('$kol');\n";
+                            break;
+                        case 'decimal':
+                            $content .= "\$table->decimal('$kol');\n";
+                            break;
+                        case 'date':
+                            $content .= "\$table->date('$kol');\n";
+                            break;
+                        case 'time':
+                            $content .= "\$table->time('$kol');\n";
+                            break;
+                        case 'datetime':
+                            $content .= "\$table->dateTime('$kol');\n";
+                            break;
+                        case 'timestamp':
+                            $content .= "\$table->timestamp('$kol');\n";
+                            break;
+                        case 'enum':
+                            $content .= "\$table->enum($kol, [$enum])->default(\$default);\n";
+                            break;
+                        default:
+                            $content .= "\$table->string('$kol');\n";
+                            break;
+                    }
+                }
+            }
+        }
+        $content .= "
+                });\n
+            }\n
+
+            public function down()\n
+            {\n
+                Schema::dropIfExists('$tabel');\n
+            }\n
+            ";
+        // Simpan migration ke dalam direktori migrations
+        $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($tabel) . '_table.txt';
+        $migrationPath = database_path('migrations/' . $migrationFileName);
+        File::put($migrationPath, $content);
