@@ -1,109 +1,11 @@
 {
     "info": {
-        "_postman_id": [
-            "unique-id",
-            "unique-id"
-        ],
-        "name": [
-            "Nama Koleksi",
-            "Nama Koleksi"
-        ],
-        "description": [
-            "Deskripsi Koleksi",
-            "Deskripsi Koleksi"
-        ],
-        "schema": [
-            "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
-            "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json"
-        ]
+        "_postman_id": "unique-id",
+        "name": "Nama Koleksi",
+        "description": "Deskripsi Koleksi",
+        "schema": "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json"
     },
-    "item": [
-        {
-            "name": "Create Tes",
-            "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                    "mode": "raw",
-                    "raw": "[\n    \"tes\",\n    \"bnbn\"\n]"
-                },
-                "url": {
-                    "raw": "http:\/\/localhost:8000\/api\/tes",
-                    "protocol": "http",
-                    "host": [
-                        "localhost:8000"
-                    ],
-                    "path": [
-                        "api",
-                        "tes"
-                    ]
-                }
-            },
-            "response": []
-        },
-        {
-            "name": "Read Tes",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "http:\/\/localhost:8000\/api\/tes",
-                    "protocol": "http",
-                    "host": [
-                        "localhost:8000"
-                    ],
-                    "path": [
-                        "api",
-                        "tes"
-                    ]
-                }
-            },
-            "response": []
-        },
-        {
-            "name": "Update Tes",
-            "request": {
-                "method": "PUT",
-                "header": [],
-                "body": {
-                    "mode": "raw",
-                    "raw": "[\n    \"tes\",\n    \"bnbn\"\n]"
-                },
-                "url": {
-                    "raw": "http:\/\/localhost:8000\/api\/tes\/{id}",
-                    "protocol": "http",
-                    "host": [
-                        "localhost:8000"
-                    ],
-                    "path": [
-                        "api",
-                        "tes",
-                        "{id}"
-                    ]
-                }
-            },
-            "response": []
-        },
-        {
-            "name": "Delete Tes",
-            "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                    "raw": "http:\/\/localhost:8000\/api\/tes\/{id}",
-                    "protocol": "http",
-                    "host": [
-                        "localhost:8000"
-                    ],
-                    "path": [
-                        "api",
-                        "tes",
-                        "{id}"
-                    ]
-                }
-            },
-            "response": []
-        },
+    "Tes": [
         {
             "name": "Create Tes",
             "request": {

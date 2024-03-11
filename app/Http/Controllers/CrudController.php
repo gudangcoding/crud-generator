@@ -84,14 +84,14 @@ class CrudController extends Controller
         // $this->generateControllerWeb($namaTabel, $kolom, $namaModel, $namaController, $folderController);
         // $this->generateControllerAPI($namaTabel, $kolom, $namaModel, $namaController, $folderController);
         // $this->generateAuthApi();
-        // $this->generateRouteWeb($namaController, $folderController);
+        $this->generateRouteWeb($namaController, $folderController);
         // $this->generateRouteAPI($namaController, $folderController);
         // $this->generateViewIndex($namaTabel, $folderController, $kolom);
         // $this->generateViewCreate($namaTabel, $kolom, $acuan);
         // $this->generateViewEdit($namaTabel, $kolom, $acuan);
         // $this->generateViewShow($namaTabel, $kolom, $acuan);
 
-        $this->generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController);
+        // $this->generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController);
     }
 
     function generateMigration($namaTabel, $kolom, $type, $lengthData = 255, $enum = null, $acuan = [])
@@ -339,15 +339,16 @@ class CrudController extends Controller
 
     function appendToPostmanJson($newData, $existingPath)
     {
-        // Membaca isi file yang sudah ada
-        $existingData = json_decode(File::get($existingPath), true);
 
-        // Menggabungkan data baru dengan data yang sudah ada
-        $mergedData = array_merge_recursive($existingData, $newData);
-
-        // Menulis kembali file dengan data yang sudah digabungkan
-        File::put($existingPath, json_encode($mergedData, JSON_PRETTY_PRINT));
+        if (File::exists($existingPath)) {
+            $existingData = json_decode(File::get($existingPath), true);
+            $mergedData = array_merge_recursive($existingData, $newData);
+            File::put($existingPath, json_encode($mergedData, JSON_PRETTY_PRINT));
+        } else {
+            File::put($existingPath, json_encode($newData, JSON_PRETTY_PRINT));
+        }
     }
+
 
     function generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController)
     {
@@ -362,7 +363,7 @@ class CrudController extends Controller
                 "description" => "Deskripsi Koleksi",
                 "schema" => "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
             ],
-            "item" => [
+            $namaModel => [
                 [
                     "name" => "Create " . ucfirst($namaTabel),
                     "request" => [
@@ -435,10 +436,25 @@ class CrudController extends Controller
 
         // Simpan JSON ke dalam file
         $postmanPath = base_path('postman.json');
+        // Mengecek apakah file Postman JSON sudah ada
+        if (File::exists($postmanPath)) {
+            // Membaca koleksi yang sudah ada dari file Postman JSON
+            $existingCollections = json_decode(File::get($postmanPath), true);
 
-        // Panggil fungsi appendToPostmanJson untuk menambahkan data baru
-        $this->appendToPostmanJson(json_decode($postmanJson, true), $postmanPath);
+            // Cek apakah koleksi dengan nama $namaModel sudah ada dalam file Postman JSON
+            if (!isset($existingCollections[$namaModel])) {
+                // Panggil fungsi appendToPostmanJson untuk menambahkan data baru
+                $this->appendToPostmanJson(json_decode($postmanJson, true), $postmanPath);
+            } else {
+                echo "Koleksi $namaModel sudah ada dalam file Postman JSON." . PHP_EOL;
+            }
+        } else {
+            // Jika file tidak ada, buat file baru dengan data koleksi
+            File::put($postmanPath, $postmanJson);
+        }
     }
+
+
 
 
 
@@ -809,6 +825,35 @@ class CrudController extends Controller
         $apiControllerPath = app_path('Http/Controllers/API/' . $apiControllerFileName);
         File::put($apiControllerPath, $authContent);
     }
+    // function generateRouteWeb($namaController, $folderController)
+    // {
+    //     // Generate routes untuk web
+    //     $import = "use App\Http\Controllers\\{$namaController};";
+    //     // Web routes
+    //     $route = "Route::resource('$folderController', {$namaController}::class);";
+
+    //     // Simpan route ke dalam file web.php
+    //     $routePath = base_path('routes/web.php');
+
+    //     // Membaca isi file web.php
+    //     $existingContent = File::get($routePath);
+
+    //     // Memisahkan konten menjadi array per baris
+    //     $lines = explode("\n", $existingContent);
+
+    //     // Menambahkan konten baru setelah baris ke-5 (misalnya)
+    //     array_splice($lines, 5, 0, [$import]);
+
+    //     // Menggabungkan kembali array ke dalam string
+    //     $newContent = implode("\n", $lines);
+
+    //     // Menulis kembali ke file
+    //     File::put($routePath, "\n" . $newContent);
+
+    //     // Menambahkan route setelah import
+    //     File::append($routePath, $route);
+    // }
+
     function generateRouteWeb($namaController, $folderController)
     {
         // Generate routes untuk web
@@ -822,20 +867,20 @@ class CrudController extends Controller
         // Membaca isi file web.php
         $existingContent = File::get($routePath);
 
-        // Memisahkan konten menjadi array per baris
-        $lines = explode("\n", $existingContent);
+        // Memeriksa keberadaan $import dalam konten
+        if (strpos($existingContent, $import) === false) {
+            // Jika $import belum ada, tambahkan setelah baris ke-5 (misalnya)
+            $lines = explode("\n", $existingContent);
+            array_splice($lines, 5, 0, [$import]);
+            $existingContent = implode("\n", $lines);
+            File::put($routePath, "\n" . $existingContent);
+        }
 
-        // Menambahkan konten baru setelah baris ke-5 (misalnya)
-        array_splice($lines, 5, 0, [$import]);
-
-        // Menggabungkan kembali array ke dalam string
-        $newContent = implode("\n", $lines);
-
-        // Menulis kembali ke file
-        File::put($routePath, "\n" . $newContent);
-
-        // Menambahkan route setelah import
-        File::append($routePath, $route);
+        // Memeriksa keberadaan $route dalam konten
+        if (strpos($existingContent, $route) === false) {
+            // Jika $route belum ada, tambahkan setelah $import
+            File::append($routePath, $route);
+        }
     }
 
 
