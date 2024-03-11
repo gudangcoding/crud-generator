@@ -190,47 +190,64 @@ class CrudController extends Controller
 
 
 
-    function generateModel($namaModel, $kolom, $relasi, $acuan)
+    function generateModel($namaModel, $kolom, $relasi = [], $acuan = [])
     {
         // Membuat model dengan relasi
         $content = "<?php
 
-            namespace App\Models;\n
+        namespace App\Models;\n
 
-            use Illuminate\Database\Eloquent\Model;\n
-            use Illuminate\Database\Eloquent\SoftDeletes;\n";
+        use Illuminate\Database\Eloquent\Model;\n
+        use Illuminate\Database\Eloquent\SoftDeletes;\n";
 
         $content .= "class $namaModel extends Model
-            {
-                use SoftDeletes;";
+        {
+            use SoftDeletes;";
 
-        $content .= "protected \$fillable = ['";
+        $content .= "protected \$fillable = [\n";
         foreach ($kolom as $key => $value) {
-            $content .= "$value";
+            $content .= "'$value',\n";
         }
-        $content .= ",'];\n";
+        $content .= "];\n";
 
         $content .= "protected \$dates = ['deleted_at']; // Tentukan kolom yang merupakan soft delete\n";
 
-        if (!empty($relasi)) {
+        // if (!empty($kolom)) {
+        //     // Definisikan relasi dengan model
+        //     foreach ($kolom as $key => $value) {
+        //         if (in_array($value, $acuan)) {
+        //             $parts = explode('\\', $value);
+        //             $model = end($parts);
+        //             $content .= "  public function $model()\n
+        //                 {\n
+        //                     return \$this->belongsTo($model::class, '$kolom', '$acuan');\n
+        //                 }\n";
+        //         }
+        //     }
+        // }
+        if (!empty($relasi) && !empty($acuan)) {
             // Definisikan relasi dengan model
             foreach ($relasi as $key => $value) {
+                // if (in_array($value, $acuan)) {
                 $parts = explode('\\', $value);
                 $model = end($parts);
+                $kolom_id = strtolower($model) . '_id';
                 $content .= "  public function $model()\n
                             {\n
-                                return \$this->belongsTo($model::class);\n
+                                return \$this->belongsTo($model::class, '$kolom_id', '$acuan[$key]');\n
                             }\n";
+                // }
             }
         }
         $content .= "
-            }";
+        }";
 
         // Simpan model ke dalam direktori Models
         $modelFileName = ucwords($namaModel) . '.php';
         $modelPath = app_path('Models/' . $modelFileName);
         File::put($modelPath, $content);
     }
+
 
 
 

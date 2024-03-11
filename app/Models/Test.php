@@ -10,18 +10,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class test extends Model
 {
     use SoftDeletes;
-    protected $fillable = ['dsddsferer,'];
+    protected $fillable = [
+        'dsdds',
+        'ferer',
+    ];
     protected $dates = ['deleted_at']; // Tentukan kolom yang merupakan soft delete
     public function User()
 
     {
 
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
     public function Route()
 
     {
 
-        return $this->belongsTo(Route::class);
+        return $this->belongsTo(Route::class, 'route_id', 'id');
     }
 }
