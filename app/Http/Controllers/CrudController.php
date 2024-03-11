@@ -80,7 +80,7 @@ class CrudController extends Controller
         //ppanggil fungsi yang sudah dibuat
         // $this->generateMigration($namaTabel, $kolom, $type, $enum, $lengthData, $acuan);
         $this->generateModel($namaTabel, $kolom, $relasi, $acuan);
-        // $this->generateFakeData($namaTabel, $kolom, $type);
+        $this->generateFakeData($namaTabel, $kolom, $type, $namaModel);
         // $this->generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController);
         // $this->generateControllerAPI($namaTabel, $namaModel, $namaController, $folderController);
         // $this->generateAuthApi($namaController, $folderController);
@@ -212,19 +212,7 @@ class CrudController extends Controller
 
         $content .= "protected \$dates = ['deleted_at']; // Tentukan kolom yang merupakan soft delete\n";
 
-        // if (!empty($kolom)) {
-        //     // Definisikan relasi dengan model
-        //     foreach ($kolom as $key => $value) {
-        //         if (in_array($value, $acuan)) {
-        //             $parts = explode('\\', $value);
-        //             $model = end($parts);
-        //             $content .= "  public function $model()\n
-        //                 {\n
-        //                     return \$this->belongsTo($model::class, '$kolom', '$acuan');\n
-        //                 }\n";
-        //         }
-        //     }
-        // }
+
         if (!empty($relasi) && !empty($acuan)) {
             // Definisikan relasi dengan model
             foreach ($relasi as $key => $value) {
@@ -252,89 +240,100 @@ class CrudController extends Controller
 
 
 
-    function generateFakeData($namaTabel, $kolom, $type)
+    function generateFakeData($namaTabel, $kolom, $type, $model)
     {
         // Membuat factory
         $factoryContent = "<?php
 
-            use Faker\Generator as Faker;
+        namespace Database\Factories;
 
-            \$factory->define(App\\Models\\" . ucfirst($namaTabel) . "::class, function (Faker \$faker) {
+        use Illuminate\Database\Eloquent\Factories\Factory;
+
+        class " . $model . "Factory extends Factory
+        {
+
+            public function definition()
+            {
                 return [";
 
+
         // Menambahkan definisi factory sesuai dengan tipe data kolom
-        foreach ($kolom as $namaKolom => $detailKolom) {
+        foreach ($kolom as $namaKolom => $kol) {
 
 
             switch ($type) {
                 case 'char':
                 case 'varchar':
                 case 'text':
-                    $factoryContent .= "'$namaKolom' => \$faker->sentence()," . PHP_EOL;
+                    $factoryContent .= "'$kol' => \$this->faker->sentence()," . PHP_EOL;
                     break;
                 case 'int':
                 case 'bigint':
-                    $factoryContent .= "'$namaKolom' => \$faker->numberBetween(1, 100)," . PHP_EOL;
+                    $factoryContent .= "'$kol' => \$this->faker->numberBetween(1, 100)," . PHP_EOL;
                     break;
                 case 'float':
                 case 'doble':
                 case 'decimal':
-                    $factoryContent .= "'$namaKolom' => \$faker->randomFloat(2, 0, 100)," . PHP_EOL;
+                    $factoryContent .= "'$kol' => \$this->faker->randomFloat(2, 0, 100)," . PHP_EOL;
                     break;
                 case 'date':
-                    $factoryContent .= "'$namaKolom' => \$faker->date()," . PHP_EOL;
+                    $factoryContent .= "'$kol' => \$this->faker->date()," . PHP_EOL;
                     break;
                 case 'time':
-                    $factoryContent .= "'$namaKolom' => \$faker->time()," . PHP_EOL;
+                    $factoryContent .= "'$kol' => \$this->faker->time()," . PHP_EOL;
                     break;
                 case 'datetime':
-                    $factoryContent .= "'$namaKolom' => \$faker->dateTime()," . PHP_EOL;
+                    $factoryContent .= "'$kol' => \$this->faker->dateTime()," . PHP_EOL;
                 case 'timestamp':
-                    $factoryContent .= "'$namaKolom' => \$faker->timestamps()," . PHP_EOL;
+                    $factoryContent .= "'$kol' => \$this->faker->timestamps()," . PHP_EOL;
+                    break;
+                case 'json':
+                    $factoryContent .= "'$kol' =>  [\$this->faker->timestamps(),]" . PHP_EOL;
+
                     break;
                 case 'enum':
                     // Pastikan Anda memiliki array opsi untuk ENUM
-                    $enumOptions = implode("', '", $detailKolom['length']);
-                    $factoryContent .= "'$namaKolom' => \$faker->randomElement(['$enumOptions'])," . PHP_EOL;
+                    $enumOptions = implode("', '", $kol['length']);
+                    $factoryContent .= "'$kol' => \$this->faker->randomElement(['$enumOptions'])," . PHP_EOL;
                     break;
                 default:
                     // Jika tipe tidak dikenali, gunakan string sebagai default
-                    $factoryContent .= "'$namaKolom' => \$faker->word()," . PHP_EOL;
+                    $factoryContent .= "'$kol' => \$this->faker->word()," . PHP_EOL;
             }
         }
 
-        $factoryContent .= "
-                ];
-            });
-            ";
+        $factoryContent .= " ];
+            }
+        };";
 
         // Simpan factory ke dalam direktori factories
-        $factoryFileName = ucfirst($namaTabel) . "Factory.txt";
+        $factoryFileName = ucfirst($namaTabel) . "Factory.php";
         $factoryPath = database_path('factories/' . $factoryFileName);
         File::put($factoryPath, $factoryContent);
 
-        // Tambahkan factory ke DatabaseSeeder.php
+
+        // Misalkan ini adalah kode yang ingin Anda sisipkan
+        $codeToInsert = "\n\n\App\Models\\" . $model . "::factory()->count(10)->create();\n\n";
+
+        // Baca isi dari DatabaseSeeder.php
         $databaseSeederPath = database_path('seeders/DatabaseSeeder.php');
-        $databaseSeederContent = File::get($databaseSeederPath);
+        $databaseSeederContent = file_get_contents($databaseSeederPath);
 
-        // Perbarui DatabaseSeeder.php dengan penambahan factory
-        $factoryImportStatement = "use App\\Models\\" . ucfirst($namaTabel) . ";\n";
-        $factoryFactoryStatement = "        " . ucfirst($namaTabel) . "::factory()->count(10)->create();\n";
+        // Temukan posisi kurung kurawal pembuka di dalam fungsi run()
+        $openBracePosition = strpos($databaseSeederContent, '{', strpos($databaseSeederContent, 'public function run()'));
 
-        // Periksa apakah sudah ada impor dan pemanggilan factory dalam DatabaseSeeder.php
-        if (strpos($databaseSeederContent, $factoryImportStatement) === false) {
-            // Jika belum, tambahkan impor
-            $databaseSeederContent = str_replace("<?php", "<?php\n\n" . $factoryImportStatement, $databaseSeederContent);
-        }
+        // Temukan posisi kurung kurawal penutup di dalam fungsi run()
+        $closeBracePosition = strpos($databaseSeederContent, '}', $openBracePosition);
 
-        // Periksa apakah sudah ada pemanggilan factory dalam DatabaseSeeder.php
-        if (strpos($databaseSeederContent, $factoryFactoryStatement) === false) {
-            // Jika belum, tambahkan pemanggilan factory di dalam fungsi run()
-            $databaseSeederContent = str_replace("public function run()", "public function run()\n    {\n        " . $factoryFactoryStatement, $databaseSeederContent);
-        }
+        // Pisahkan kode sebelum dan sesudah kurung kurawal
+        $beforeInsert = substr($databaseSeederContent, 0, $openBracePosition + 1);
+        $afterInsert = substr($databaseSeederContent, $closeBracePosition);
 
-        // Simpan DatabaseSeeder.php
-        File::put($databaseSeederPath, $databaseSeederContent);
+        // Gabungkan kembali dengan kode yang ingin disisipkan di tengah
+        $modifiedSeederContent = $beforeInsert . $codeToInsert . $afterInsert;
+
+        // Simpan kembali ke DatabaseSeeder.php
+        file_put_contents($databaseSeederPath, $modifiedSeederContent);
     }
 
     function generatePostmanJson($namaTabel)
