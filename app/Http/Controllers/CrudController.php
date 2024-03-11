@@ -84,7 +84,7 @@ class CrudController extends Controller
         // $this->generateControllerWeb($namaTabel, $kolom, $namaModel, $namaController, $folderController);
         // $this->generateControllerAPI($namaTabel, $kolom, $namaModel, $namaController, $folderController);
         // $this->generateAuthApi();
-        $this->generateRouteWeb($namaController, $folderController);
+        // $this->generateRouteWeb($namaController, $folderController);
         // $this->generateRouteAPI($namaController, $folderController);
         // $this->generateViewIndex($namaTabel, $folderController, $kolom);
         // $this->generateViewCreate($namaTabel, $kolom, $acuan);
@@ -874,12 +874,16 @@ class CrudController extends Controller
             array_splice($lines, 5, 0, [$import]);
             $existingContent = implode("\n", $lines);
             File::put($routePath, "\n" . $existingContent);
+        } else {
+            echo "import sudah ada\n";
         }
 
         // Memeriksa keberadaan $route dalam konten
         if (strpos($existingContent, $route) === false) {
             // Jika $route belum ada, tambahkan setelah $import
             File::append($routePath, $route);
+        } else {
+            echo "route sudah ada";
         }
     }
 
@@ -888,30 +892,36 @@ class CrudController extends Controller
 
     function generateRouteAPI($namaController, $folderController)
     {
-
+        // Generate routes untuk API
         $import = " use App\Http\Controllers\API\\{$namaController}API;";
         $route = "Route::resource('api/$folderController', {$namaController}API::class);";
-        // Simpan route ke dalam file web.php
+
+        // Simpan route ke dalam file api.php
         $routePath = base_path('routes/api.php');
 
-        // Membaca isi file web.php
+        // Membaca isi file api.php
         $existingContent = File::get($routePath);
 
-        // Memisahkan konten menjadi array per baris
-        $lines = explode("\n", $existingContent);
+        // Memeriksa keberadaan $import dalam konten
+        if (strpos($existingContent, $import) === false) {
+            // Jika $import belum ada, tambahkan setelah baris ke-5 (misalnya)
+            $lines = explode("\n", $existingContent);
+            array_splice($lines, 5, 0, [$import]);
+            $existingContent = implode("\n", $lines);
+            File::put($routePath, "\n" . $existingContent);
+        } else {
+            echo "import sudah ada\n";
+        }
 
-        // Menambahkan konten baru setelah baris ke-5 (misalnya)
-        array_splice($lines, 5, 0, [$import]);
-
-        // Menggabungkan kembali array ke dalam string
-        $newContent = implode("\n", $lines);
-
-        // Menulis kembali ke file
-        File::put($routePath, "\n" . $newContent);
-
-        // Menambahkan route setelah import
-        File::append($routePath, $route);
+        // Memeriksa keberadaan $route dalam konten
+        if (strpos($existingContent, $route) === false) {
+            // Jika $route belum ada, tambahkan setelah $import
+            File::append($routePath, $route);
+        } else {
+            echo "route sudah ada";
+        }
     }
+
 
     function generateViewIndex($namaTabel, $kolom, $folderController)
     {
