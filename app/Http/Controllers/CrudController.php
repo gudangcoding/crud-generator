@@ -91,17 +91,17 @@ class CrudController extends Controller
         $this->generateViewEdit($namaTabel, $kolom, $inputType);
         $this->generateViewShow($namaTabel, $kolom, $inputType);
         $this->generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController);
-        try {
-            // Menjalankan perintah migrate
-            Artisan::call('migrate:refresh');
+        // try {
+        //     // Menjalankan perintah migrate
+        //     Artisan::call('migrate:refresh');
 
-            // Menjalankan perintah db:seed
-            Artisan::call('db:seed');
+        //     // Menjalankan perintah db:seed
+        //     Artisan::call('db:seed');
 
-            echo "Migration and seeding completed successfully!";
-        } catch (\Exception $e) {
-            echo "Error: " . $e->getMessage();
-        }
+        //     echo "Migration and seeding completed successfully!";
+        // } catch (\Exception $e) {
+        //     echo "Error: " . $e->getMessage();
+        // }
     }
 
 
