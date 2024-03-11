@@ -78,20 +78,20 @@ class CrudController extends Controller
         $controllerName = end($parts);
         $folderName = reset($parts);
         //panggil fungsi yang sudah dibuat
-        // $this->generateMigration($namaTabel, $kolom, $type, $enum, $lengthData, $acuan);
-        // $this->generateModel($namaTabel, $kolom, $relasi, $acuan);
-        // $this->generateFakeData($namaTabel, $kolom, $type, $namaModel);
-        // $this->generateControllerWeb($namaTabel, $kolom, $namaModel, $namaController, $folderController);
-        // $this->generateControllerAPI($namaTabel, $kolom, $namaModel, $namaController, $folderController);
-        // $this->generateAuthApi();
-        // $this->generateRouteWeb($namaController, $folderController);
-        // $this->generateRouteAPI($namaController, $folderController);
-        // $this->generateViewIndex($namaTabel, $folderController, $kolom);
-        // $this->generateViewCreate($namaTabel, $kolom, $acuan);
-        // $this->generateViewEdit($namaTabel, $kolom, $acuan);
-        // $this->generateViewShow($namaTabel, $kolom, $acuan);
+        $this->generateMigration($namaTabel, $kolom, $type, $enum, $lengthData, $acuan);
+        $this->generateModel($namaTabel, $kolom, $relasi, $acuan);
+        $this->generateFakeData($namaTabel, $kolom, $type, $namaModel);
+        $this->generateControllerWeb($namaTabel, $kolom, $namaModel, $namaController, $folderController);
+        $this->generateControllerAPI($namaTabel, $kolom, $namaModel, $namaController, $folderController);
+        $this->generateAuthApi();
+        $this->generateRouteWeb($namaController, $folderController);
+        $this->generateRouteAPI($namaController, $folderController);
+        $this->generateViewIndex($namaTabel,  $kolom);
+        $this->generateViewCreate($namaTabel, $kolom, $inputType);
+        $this->generateViewEdit($namaTabel, $kolom, $inputType);
+        $this->generateViewShow($namaTabel, $kolom, $inputType);
 
-        // $this->generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController);
+        $this->generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController);
     }
 
     function generateMigration($namaTabel, $kolom, $type, $lengthData = 255, $enum = null, $acuan = [])
@@ -181,7 +181,7 @@ class CrudController extends Controller
             }";
 
         // Simpan migration ke dalam direktori migrations
-        $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($tabel) . '_table.txt';
+        $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($tabel) . '_table.php';
         $migrationPath = database_path('migrations/' . $migrationFileName);
         file_put_contents($migrationPath, $content);
     }
@@ -923,9 +923,12 @@ class CrudController extends Controller
     }
 
 
-    function generateViewIndex($namaTabel, $kolom, $folderController)
+    function generateViewIndex($namaTabel, $kolom)
     {
-        $namaModal = strtolower($namaTabel) . '.form.blade.php';
+        // echo $kolom;
+        // die;
+
+        $namafile = strtolower($namaTabel);
         // Contoh, membuat view blade
         $viewContent = "@extends('layouts.app')
 
@@ -937,18 +940,18 @@ class CrudController extends Controller
             <div class=\"card-body\">
                 <!-- Tambahkan tombol-tombol untuk tambah data, edit data, dan lihat data -->
                 <div class=\"mb-3\">
-                    <a href=\"{{ route('$folderController.create') }}\" class=\"btn btn-success\">Tambah Data</a>
+                    <a href=\"{{ route('$namafile.create') }}\" class=\"btn btn-success\">Tambah Data</a>
                     <button type=\"button\" class=\"btn btn-primary\" id=\"bulkDelete\">Hapus Data Terpilih</button>
                 </div>
                 <form id=\"filterForm\">
                     @csrf
-                    <div class=\"form-row\">
-                        @foreach ($kolom as \$namaKolom)
-                        <div class=\"form-group col\">
-                            <input type=\"text\" name=\"{{ \$namaKolom }}\" class=\"form-control\" placeholder=\"Filter {{ ucfirst(\$namaKolom) }}\">
-                        </div>
-                        @endforeach
-                        <div class=\"form-group col\">
+                    <div class=\"form-row\">";
+        foreach ($kolom as $namaKolom) {
+            $viewContent .= "<div class=\"form-group col\">";
+            $viewContent .= "<input type=\"text\" name=\"{{ $namaKolom }}\" class=\"form-control\" placeholder=\"Filter {{ ucfirst($namaKolom) }}\">";
+            $viewContent .= "</div>";
+        }
+        $viewContent .= "<div class=\"form-group col\">
                             <button type=\"button\" id=\"applyFilter\" class=\"btn btn-primary\">Apply Filter</button>
                         </div>
                     </div>
@@ -957,11 +960,11 @@ class CrudController extends Controller
                     <thead>
                         <tr>
                             <!-- Tambahkan kolom untuk cek semua -->
-                            <th><input type=\"checkbox\" id=\"selectAll\"></th>
-                            @foreach ($kolom as \$namaKolom)
-                            <th>{{ ucfirst(\$namaKolom) }}</th>
-                            @endforeach
-                            <th>Aksi</th>
+                            <th><input type=\"checkbox\" id=\"selectAll\"></th>";
+        foreach ($kolom as $index => $namaKolom) {
+            $viewContent .= "<th>{{ ucfirst($namaKolom[$index]) }}</th>";
+        }
+        $viewContent .= "<th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -986,7 +989,7 @@ class CrudController extends Controller
                 // Function untuk mengirimkan data filter ke server
                 function applyFilter() {
                     $.ajax({
-                        url: '{{ route('$folderController.index') }}',
+                        url: '{{ route('$namafile.index') }}',
                         type: 'POST',
                         data: $('#filterForm').serialize(),
                         success: function(data) {
@@ -1009,7 +1012,7 @@ class CrudController extends Controller
                     if (selectedIds.length > 0) {
                         // Kirim ID yang dipilih ke server untuk penghapusan bulk
                         $.ajax({
-                            url: '{{ route('$folderController.bulkDelete') }}',
+                            url: '{{ route('$namafile.bulkDelete') }}',
                             type: 'POST',
                             data: {
                                 ids: selectedIds,
@@ -1029,7 +1032,7 @@ class CrudController extends Controller
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: '{{ route('$folderController.index') }}',
+                        url: '{{ route('$namafile.index') }}',
                         type: 'POST', // Ganti tipe ke POST
                         data: function(d) {
                             d._token = '{{ csrf_token() }}'; // Sertakan CSRF token
@@ -1041,13 +1044,12 @@ class CrudController extends Controller
                             data: 'checkbox',
                             orderable: false,
                             searchable: false
-                        },
-                        @foreach ($kolom as \$namaKolom)
-                        {
-                            data: '{{ \$namaKolom }}',
-                            name: '{{ \$namaKolom }}'
-                        },
-                        @endforeach
+                        },";
+        foreach ($kolom as $namaKolom) {
+            $viewContent .= "data: '{{ \$namaKolom }}',";
+            $viewContent .= "name: '{{ \$namaKolom }}'";
+        }
+        $viewContent .= "},
                         // Kolom untuk aksi
                         {
                             data: 'aksi',
@@ -1080,14 +1082,16 @@ class CrudController extends Controller
         @endsection";
 
         // Simpan view ke dalam direktori resources/views
-        $viewFileName = strtolower($namaTabel) . '.blade.php';
-        $viewPath = resource_path('views/' . $folderController . '/' . $viewFileName);
+        $viewFileName = 'index.blade.php';
+        $this->createFolderIfNotExists($namafile);
+        $viewPath = resource_path('views/' . $namafile . '/' . $viewFileName);
         File::put($viewPath, $viewContent);
     }
 
 
-    function generateViewCreate($namaTabel, $folderController, $kolom)
+    function generateViewCreate($namaTabel, $kolom, $inputType)
     {
+        $namafile = strtolower($namaTabel);
         $viewContent = "@extends('layouts.app')
 
         @section('content')
@@ -1100,8 +1104,9 @@ class CrudController extends Controller
                     @csrf
                     <div class=\"form-row\">";
 
-        foreach ($kolom as $namaKolom => $type) {
-            $inputType = '';
+        foreach ($kolom as $key => $col) {
+            $type = $inputType[$key];
+            $namaKolom = $col;
             switch ($type) {
                 case 'text':
                 case 'number':
@@ -1133,7 +1138,7 @@ class CrudController extends Controller
 
             $viewContent .= "<div class=\"form-group col\">
                             <label for=\"$namaKolom\">" . ucfirst($namaKolom) . "</label>
-                            {!! $inputType !!}
+                            $inputType
                         </div>";
         }
 
@@ -1149,7 +1154,7 @@ class CrudController extends Controller
                     e.preventDefault();
                     var formData = $(this).serialize();
                     $.ajax({
-                        url: '{{ route('$folderController.store') }}',
+                        url: '{{ route('$namafile.store') }}',
                         type: 'POST',
                         data: formData,
                         success: function(response) {
@@ -1167,13 +1172,15 @@ class CrudController extends Controller
 
         // Simpan view ke dalam direktori resources/views
         $viewFileName = 'create.blade.php';
-        $viewPath = resource_path('views/' . $folderController . '/' . $viewFileName);
+        $this->createFolderIfNotExists($namafile);
+        $viewPath = resource_path('views/' . $namafile . '/' . $viewFileName);
         File::put($viewPath, $viewContent);
     }
 
 
-    function generateViewEdit($namaTabel, $folderController, $kolom)
+    function generateViewEdit($namaTabel,  $kolom, $inputType)
     {
+        $namafile = strtolower($namaTabel);
         $viewContent = "@extends('layouts.app')
         @section('content')
             <div class=\"card\">
@@ -1184,7 +1191,9 @@ class CrudController extends Controller
                     <form id=\"editForm\">
                         @csrf
                         <div class=\"form-row\">";
-        foreach ($kolom as $namaKolom => $type) {
+        foreach ($kolom as $key => $col) {
+            $type = $inputType[$key];
+            $namaKolom = $col;
             switch ($type) {
                 case 'text':
                 case 'number':
@@ -1229,7 +1238,7 @@ class CrudController extends Controller
 
             $viewContent .= "<div class=\"form-group col\">
                                     <label for=\"$namaKolom\">{{ ucfirst($namaKolom) }}</label>
-                                    {!! $inputValue !!}
+                                    $inputValue
                                 </div>";
         }
         $viewContent .= "</div>
@@ -1244,7 +1253,7 @@ class CrudController extends Controller
                         e.preventDefault();
                         var formData = $(this).serialize();
                         $.ajax({
-                            url: '{{ route('$folderController.update', ['id' => $namaTabel->id]) }}',
+                            url: '{{ route('\$namafile.update', ['id' => \$namafile->id]) }}',
                             type: 'PUT',
                             data: formData,
                             success: function(response) {
@@ -1262,12 +1271,14 @@ class CrudController extends Controller
 
         // Simpan view ke dalam direktori resources/views
         $viewFileName = 'edit.blade.php';
-        $viewPath = resource_path('views/' . $folderController . '/' . $viewFileName);
+        $this->createFolderIfNotExists($namafile);
+        $viewPath = resource_path('views/' . $namafile . '/' . $viewFileName);
         File::put($viewPath, $viewContent);
     }
 
-    function generateViewShow($namaTabel, $folderController, $kolom)
+    function generateViewShow($namaTabel, $kolom)
     {
+        $namafile = strtolower($namaTabel);
         // Contoh, membuat view blade untuk show
         $viewContent = "@extends('layouts.app')
 
@@ -1297,7 +1308,26 @@ class CrudController extends Controller
 
         // Simpan view ke dalam direktori resources/views
         $viewFileName = 'show.blade.php';
-        $viewPath = resource_path('views/' . $folderController . '/' . $viewFileName);
+        $this->createFolderIfNotExists($namafile);
+        $viewPath = resource_path('views/' . $namafile . '/' . $viewFileName);
         File::put($viewPath, $viewContent);
+    }
+
+    function createFolderIfNotExists($folderName)
+    {
+        // Path ke folder views
+        $viewsPath = resource_path('views');
+
+        // Path lengkap untuk folder yang ingin dibuat
+        $folderPath = $viewsPath . '/' . $folderName;
+
+        // Memeriksa apakah folder sudah ada
+        if (!File::isDirectory($folderPath)) {
+            // Jika belum ada, membuat folder
+            File::makeDirectory($folderPath, 0755, true, true);
+            echo "Folder created successfully!";
+        } else {
+            echo "Folder already exists.";
+        }
     }
 }
