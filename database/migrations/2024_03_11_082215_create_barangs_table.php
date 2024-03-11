@@ -5,11 +5,11 @@
                 use Illuminate\Support\Facades\Schema;
                 use Ramsey\Uuid\Uuid;
 
-                class CreateProdukTable extends Migration
+                return new class extends Migration
                 {
                     public function up()
                     {
-                        Schema::create('produks', function (Blueprint $table) {
+                        Schema::create('barangs', function (Blueprint $table) {
 $table->uuid('id')->primary();
 $table->timestamps();
 $table->softDeletes(); // Menambahkan soft deletes
@@ -22,7 +22,7 @@ $table->string('bnbn', );
 
                     public function down()
                     {
-                        Schema::dropIfExists('produks');
+                        Schema::dropIfExists('barangs');
 
                     }
-                }
+                };

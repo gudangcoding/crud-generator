@@ -91,17 +91,17 @@ class CrudController extends Controller
         $this->generateViewEdit($namaTabel, $kolom, $inputType);
         $this->generateViewShow($namaTabel, $kolom, $inputType);
         $this->generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController);
-        // try {
-        //     // Menjalankan perintah migrate
-        //     Artisan::call('migrate:refresh');
+        try {
+            // Menjalankan perintah migrate
+            Artisan::call('migrate');
 
-        //     // Menjalankan perintah db:seed
-        //     Artisan::call('db:seed');
+            // Menjalankan perintah db:seed
+            Artisan::call('db:seed');
 
-        //     echo "Migration and seeding completed successfully!";
-        // } catch (\Exception $e) {
-        //     echo "Error: " . $e->getMessage();
-        // }
+            echo "Migration and seeding completed successfully!";
+        } catch (\Exception $e) {
+            echo "Error: " . $e->getMessage();
+        }
     }
 
 
@@ -119,7 +119,7 @@ class CrudController extends Controller
                 use Illuminate\Support\Facades\Schema;
                 use Ramsey\Uuid\Uuid;
 
-                class Create" . ucfirst($namaTabel) . "Table extends Migration
+                return new class extends Migration
                 {
                     public function up()
                     {
@@ -187,7 +187,7 @@ class CrudController extends Controller
                     {
                         Schema::dropIfExists('$tabel');\n
                     }
-                }";
+                };";
 
             // Simpan migration ke dalam direktori migrations
             $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($tabel) . '_table.php';

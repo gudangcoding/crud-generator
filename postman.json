@@ -2,17 +2,25 @@
     "info": {
         "_postman_id": [
             "unique-id",
+            "unique-id",
+            "unique-id",
             "unique-id"
         ],
         "name": [
+            "Nama Koleksi",
+            "Nama Koleksi",
             "Nama Koleksi",
             "Nama Koleksi"
         ],
         "description": [
             "Deskripsi Koleksi",
+            "Deskripsi Koleksi",
+            "Deskripsi Koleksi",
             "Deskripsi Koleksi"
         ],
         "schema": [
+            "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
+            "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json"
         ]
@@ -186,6 +194,182 @@
                     "path": [
                         "api",
                         "produk",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "Barang": [
+        {
+            "name": "Create Barang",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"tes\",\n    \"bnbn\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/barang",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "barang"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Read Barang",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/barang",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "barang"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Barang",
+            "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"tes\",\n    \"bnbn\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/barang\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "barang",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Barang",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/barang\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "barang",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "Member": [
+        {
+            "name": "Create Member",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"tes\",\n    \"bnbn\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/member",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "member"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Read Member",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/member",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "member"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Member",
+            "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"tes\",\n    \"bnbn\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/member\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "member",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Member",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/member\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "member",
                         "{id}"
                     ]
                 }
