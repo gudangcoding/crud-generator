@@ -90,100 +90,114 @@ class CrudController extends Controller
         $this->generateViewCreate($namaTabel, $kolom, $inputType);
         $this->generateViewEdit($namaTabel, $kolom, $inputType);
         $this->generateViewShow($namaTabel, $kolom, $inputType);
-
         $this->generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController);
+        try {
+            // Menjalankan perintah migrate
+            Artisan::call('migrate:refresh');
+
+            // Menjalankan perintah db:seed
+            Artisan::call('db:seed');
+
+            echo "Migration and seeding completed successfully!";
+        } catch (\Exception $e) {
+            echo "Error: " . $e->getMessage();
+        }
     }
+
+
 
     function generateMigration($namaTabel, $kolom, $type, $lengthData = 255, $enum = null, $acuan = [])
     {
-
         $tabel = $namaTabel . "s";
-        $content = "<?php
 
-            use Illuminate\Database\Migrations\Migration;
-            use Illuminate\Database\Schema\Blueprint;
-            use Illuminate\Support\Facades\Schema;
-            use Ramsey\Uuid\Uuid;
+        // Check if the migration already exists
+        if (!Schema::hasTable($tabel)) {
+            $content = "<?php
 
-            class Create" . ucfirst($namaTabel) . "Table extends Migration
-            {
-                public function up()
+                use Illuminate\Database\Migrations\Migration;
+                use Illuminate\Database\Schema\Blueprint;
+                use Illuminate\Support\Facades\Schema;
+                use Ramsey\Uuid\Uuid;
+
+                class Create" . ucfirst($namaTabel) . "Table extends Migration
                 {
-                    Schema::create('$tabel', function (Blueprint \$table) {\n";
-        $content .= "\$table->uuid('id')->primary();\n";
-        $content .= "\$table->timestamps();\n";
-        $content .= "\$table->softDeletes(); // Menambahkan soft deletes\n";
-        if ($kolom) {
-            foreach ($kolom as $kolom => $kol) {
-                // echo  count($kolom);
-                //jika ada relasi
-                if (in_array($kol, $acuan)) {
-                    $content .= "\$table->unsignedBigInteger('\${\$kol}_id');";
-                    $content .= "\$table->foreign('\${\$kol}_id')->references('id')->on('\${\$kol}s')->onDelete('cascade');";
-                    $content .= "\n";
-                } else {
-                    //jika tidak ada relasi
-                    switch ($type) {
-                        case 'char':
-                            $content .= "\$table->string('$kol', $lengthData);\n";
-                            break;
-                        case 'varchar':
-                            $content .= "\$table->string('$kol', $lengthData);\n";
-                            break;
-                        case 'text':
-                            $content .= "\$table->text('$kol');\n";
-                            break;
-                        case 'int':
-                            $content .= "\$table->integer('$kol', $lengthData);\n";
-                            break;
-                        case 'bigint':
-                            $content .= "\$table->bigInteger('$kol', $lengthData);\n";
-                            break;
-                        case 'float':
-                            $content .= "\$table->float('$kol');\n";
-                            break;
-                        case 'double':
-                            $content .= "\$table->double('$kol');\n";
-                            break;
-                        case 'decimal':
-                            $content .= "\$table->decimal('$kol');\n";
-                            break;
-                        case 'date':
-                            $content .= "\$table->date('$kol');\n";
-                            break;
-                        case 'time':
-                            $content .= "\$table->time('$kol');\n";
-                            break;
-                        case 'datetime':
-                            $content .= "\$table->dateTime('$kol');\n";
-                            break;
-                        case 'timestamp':
-                            $content .= "\$table->timestamp('$kol');\n";
-                            break;
-                        case 'enum':
-                            $content .= "\$table->enum('$kol', [$enum])->default('\$default');\n";
-                            break;
-                        default:
-                            $content .= "\$table->string('$kol', $lengthData);\n";
-                            break;
+                    public function up()
+                    {
+                        Schema::create('$tabel', function (Blueprint \$table) {\n";
+            $content .= "\$table->uuid('id')->primary();\n";
+            $content .= "\$table->timestamps();\n";
+            $content .= "\$table->softDeletes(); // Menambahkan soft deletes\n";
+            if ($kolom) {
+                foreach ($kolom as $kolom => $kol) {
+                    if (in_array($kol, $acuan)) {
+                        $content .= "\$table->unsignedBigInteger('\${\$kol}_id');\n";
+                        $content .= "\$table->foreign('\${\$kol}_id')->references('id')->on('\${\$kol}s')->onDelete('cascade');\n";
+                    } else {
+                        //jika tidak ada relasi
+                        switch ($type) {
+                            case 'char':
+                            case 'varchar':
+                                $content .= "\$table->string('$kol', $lengthData);\n";
+                                break;
+                            case 'text':
+                                $content .= "\$table->text('$kol');\n";
+                                break;
+                            case 'int':
+                                $content .= "\$table->integer('$kol', $lengthData);\n";
+                                break;
+                            case 'bigint':
+                                $content .= "\$table->bigInteger('$kol', $lengthData);\n";
+                                break;
+                            case 'float':
+                                $content .= "\$table->float('$kol');\n";
+                                break;
+                            case 'double':
+                                $content .= "\$table->double('$kol');\n";
+                                break;
+                            case 'decimal':
+                                $content .= "\$table->decimal('$kol');\n";
+                                break;
+                            case 'date':
+                                $content .= "\$table->date('$kol');\n";
+                                break;
+                            case 'time':
+                                $content .= "\$table->time('$kol');\n";
+                                break;
+                            case 'datetime':
+                                $content .= "\$table->dateTime('$kol');\n";
+                                break;
+                            case 'timestamp':
+                                $content .= "\$table->timestamp('$kol');\n";
+                                break;
+                            case 'enum':
+                                $content .= "\$table->enum('$kol', [$enum])->default('\$default');\n";
+                                break;
+                            default:
+                                $content .= "\$table->string('$kol', $lengthData);\n";
+                                break;
+                        }
                     }
                 }
             }
+            $content .= "
+                        });\n
+                    }
+
+                    public function down()
+                    {
+                        Schema::dropIfExists('$tabel');\n
+                    }
+                }";
+
+            // Simpan migration ke dalam direktori migrations
+            $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($tabel) . '_table.php';
+            $migrationPath = database_path('migrations/' . $migrationFileName);
+            file_put_contents($migrationPath, $content);
+
+            echo "Migration created successfully!";
+        } else {
+            echo "Migration already exists.";
         }
-        $content .= "
-                    });\n
-                }
-
-                public function down()
-                {
-                    Schema::dropIfExists('$tabel');\n
-                }
-            }";
-
-        // Simpan migration ke dalam direktori migrations
-        $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($tabel) . '_table.php';
-        $migrationPath = database_path('migrations/' . $migrationFileName);
-        file_put_contents($migrationPath, $content);
     }
 
 
@@ -825,34 +839,7 @@ class CrudController extends Controller
         $apiControllerPath = app_path('Http/Controllers/API/' . $apiControllerFileName);
         File::put($apiControllerPath, $authContent);
     }
-    // function generateRouteWeb($namaController, $folderController)
-    // {
-    //     // Generate routes untuk web
-    //     $import = "use App\Http\Controllers\\{$namaController};";
-    //     // Web routes
-    //     $route = "Route::resource('$folderController', {$namaController}::class);";
 
-    //     // Simpan route ke dalam file web.php
-    //     $routePath = base_path('routes/web.php');
-
-    //     // Membaca isi file web.php
-    //     $existingContent = File::get($routePath);
-
-    //     // Memisahkan konten menjadi array per baris
-    //     $lines = explode("\n", $existingContent);
-
-    //     // Menambahkan konten baru setelah baris ke-5 (misalnya)
-    //     array_splice($lines, 5, 0, [$import]);
-
-    //     // Menggabungkan kembali array ke dalam string
-    //     $newContent = implode("\n", $lines);
-
-    //     // Menulis kembali ke file
-    //     File::put($routePath, "\n" . $newContent);
-
-    //     // Menambahkan route setelah import
-    //     File::append($routePath, $route);
-    // }
 
     function generateRouteWeb($namaController, $folderController)
     {
@@ -1276,7 +1263,7 @@ class CrudController extends Controller
         File::put($viewPath, $viewContent);
     }
 
-    function generateViewShow($namaTabel, $kolom)
+    function generateViewShow($namaTabel, $kolom, $inputType)
     {
         $namafile = strtolower($namaTabel);
         // Contoh, membuat view blade untuk show
