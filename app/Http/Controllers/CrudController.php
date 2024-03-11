@@ -50,36 +50,37 @@ class CrudController extends Controller
 
     function generate(Request $request)
     {
-        // echo json_encode($request->all());
+        echo json_encode($request->all());
         // die();
         // input satuan
-        $namaTabel = $request->input('nama_tabel');
-        $enum = $request->input('enum');
-        $namaModel = $request->input('nama_model');
-        $namaController = $request->input('nama_controller');
-        $folderController = $request->input('folder_controller');
-        $buat_dummy = $request->input('buat_dummy');
-        $batasi = $request->input('batasi');
-        $api = $request->input('api');
+        $namaTabel = $request->nama_tabel;
+        $enum = $request->enum;
+        $namaModel = $request->nama_model;
+        $namaController = $request->nama_controller;
+        $folderController = $request->folder_controller;
+        $buat_dummy = $request->buat_dummy;
+        $batasi = $request->batasi;
+        $api = $request->api;
         //input array
         $kolom = $request->kolom;
         // Ambil data relasi dan acuan yang dibuat dari form
-        $relasi = $request->input('relasi');
-        $acuan = $request->input('acuan');
+        $relasi = $request->relasi;
+        $acuan = $request->acuan;
 
-        $type = $request->input('type_data');
-        $inputType = $request->input('inputType');
-        $lengthData = $request->input('lengthData');
-        $additionalInput = $request->input('additionalInput');
-        $manualInput = $request->input('manualInput');
-        $dbInput = $request->input('dbInput');
-        $wajib = $request->input('wajib');
+        $type = $request->type_data;
+        $inputType = $request->inputType;
+        $lengthData = $request->lengthData;
+        $additionalInput = $request->additionalInput;
+        $manualInput = $request->manualInput;
+        $dbInput = $request->dbInput;
+        $wajib = $request->wajib;
         $parts = explode('/', $folderController);
         $controllerName = end($parts);
         $folderName = reset($parts);
         //ppanggil fungsi yang sudah dibuat
-        $this->generateMigration($namaTabel, $kolom, $type, $enum, $lengthData, $acuan);
-        // $this->generateModel($namaTabel, $kolom, $acuan);
+        // $this->generateMigration($namaTabel, $kolom, $type, $enum, $lengthData, $acuan);
+        $this->generateModel($namaTabel, $kolom, $relasi, $acuan);
+        // $this->generateFakeData($namaTabel, $kolom, $type);
         // $this->generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController);
         // $this->generateControllerAPI($namaTabel, $namaModel, $namaController, $folderController);
         // $this->generateAuthApi($namaController, $folderController);
@@ -89,7 +90,7 @@ class CrudController extends Controller
         // $this->generateViewCreate($namaTabel, $kolom, $acuan);
         // $this->generateViewEdit($namaTabel, $kolom, $acuan);
         // $this->generateViewShow($namaTabel, $kolom, $acuan);
-        // $this->generateFakeData($namaTabel, $kolom);
+
         // $this->generatePostmanJson($namaTabel);
     }
 
@@ -189,9 +190,52 @@ class CrudController extends Controller
 
 
 
+    function generateModel($namaModel, $kolom, $relasi, $acuan)
+    {
+        // Membuat model dengan relasi
+        $content = "<?php
+
+            namespace App\Models;\n
+
+            use Illuminate\Database\Eloquent\Model;\n
+            use Illuminate\Database\Eloquent\SoftDeletes;\n";
+
+        $content .= "class $namaModel extends Model
+            {
+                use SoftDeletes;";
+
+        $content .= "protected \$fillable = ['";
+        foreach ($kolom as $key => $value) {
+            $content .= "$value";
+        }
+        $content .= ",'];\n";
+
+        $content .= "protected \$dates = ['deleted_at']; // Tentukan kolom yang merupakan soft delete\n";
+
+        if (!empty($relasi)) {
+            // Definisikan relasi dengan model
+            foreach ($relasi as $key => $value) {
+                $parts = explode('\\', $value);
+                $model = end($parts);
+                $content .= "  public function $model()\n
+                            {\n
+                                return \$this->belongsTo($model::class);\n
+                            }\n";
+            }
+        }
+        $content .= "
+            }";
+
+        // Simpan model ke dalam direktori Models
+        $modelFileName = ucwords($namaModel) . '.php';
+        $modelPath = app_path('Models/' . $modelFileName);
+        File::put($modelPath, $content);
+    }
 
 
-    function generateFakeData($namaTabel, $kolom)
+
+
+    function generateFakeData($namaTabel, $kolom, $type)
     {
         // Membuat factory
         $factoryContent = "<?php
@@ -203,41 +247,42 @@ class CrudController extends Controller
 
         // Menambahkan definisi factory sesuai dengan tipe data kolom
         foreach ($kolom as $namaKolom => $detailKolom) {
-            $type = $detailKolom['type'];
+
 
             switch ($type) {
-                case 'CHAR':
-                case 'VARCHAR':
-                case 'TEXT':
-                    $factoryContent .= "\n            '$namaKolom' => \$faker->sentence(),";
+                case 'char':
+                case 'varchar':
+                case 'text':
+                    $factoryContent .= "'$namaKolom' => \$faker->sentence()," . PHP_EOL;
                     break;
-                case 'INT':
-                case 'BIGINT':
-                    $factoryContent .= "\n            '$namaKolom' => \$faker->numberBetween(1, 100),";
+                case 'int':
+                case 'bigint':
+                    $factoryContent .= "'$namaKolom' => \$faker->numberBetween(1, 100)," . PHP_EOL;
                     break;
-                case 'FLOAT':
-                case 'DOUBLE':
-                case 'DECIMAL':
-                    $factoryContent .= "\n            '$namaKolom' => \$faker->randomFloat(2, 0, 100),";
+                case 'float':
+                case 'doble':
+                case 'decimal':
+                    $factoryContent .= "'$namaKolom' => \$faker->randomFloat(2, 0, 100)," . PHP_EOL;
                     break;
-                case 'DATE':
-                    $factoryContent .= "\n            '$namaKolom' => \$faker->date(),";
+                case 'date':
+                    $factoryContent .= "'$namaKolom' => \$faker->date()," . PHP_EOL;
                     break;
-                case 'TIME':
-                    $factoryContent .= "\n            '$namaKolom' => \$faker->time(),";
+                case 'time':
+                    $factoryContent .= "'$namaKolom' => \$faker->time()," . PHP_EOL;
                     break;
-                case 'DATETIME':
-                case 'TIMESTAMP':
-                    $factoryContent .= "\n            '$namaKolom' => \$faker->dateTime(),";
+                case 'datetime':
+                    $factoryContent .= "'$namaKolom' => \$faker->dateTime()," . PHP_EOL;
+                case 'timestamp':
+                    $factoryContent .= "'$namaKolom' => \$faker->timestamps()," . PHP_EOL;
                     break;
-                case 'ENUM':
+                case 'enum':
                     // Pastikan Anda memiliki array opsi untuk ENUM
                     $enumOptions = implode("', '", $detailKolom['length']);
-                    $factoryContent .= "\n            '$namaKolom' => \$faker->randomElement(['$enumOptions']),";
+                    $factoryContent .= "'$namaKolom' => \$faker->randomElement(['$enumOptions'])," . PHP_EOL;
                     break;
                 default:
                     // Jika tipe tidak dikenali, gunakan string sebagai default
-                    $factoryContent .= "\n            '$namaKolom' => \$faker->word(),";
+                    $factoryContent .= "'$namaKolom' => \$faker->word()," . PHP_EOL;
             }
         }
 
@@ -247,7 +292,7 @@ class CrudController extends Controller
             ";
 
         // Simpan factory ke dalam direktori factories
-        $factoryFileName = ucfirst($namaTabel) . "Factory.php";
+        $factoryFileName = ucfirst($namaTabel) . "Factory.txt";
         $factoryPath = database_path('factories/' . $factoryFileName);
         File::put($factoryPath, $factoryContent);
 
@@ -362,39 +407,7 @@ class CrudController extends Controller
         return $postmanJson;
     }
 
-    function generateModel($namaModel, $kolom, $relasi)
-    {
-        // Membuat model dengan relasi
-        $modelContent = "<?php
 
-        namespace App\Models;
-
-        use Illuminate\Database\Eloquent\Model;
-        use Illuminate\Database\Eloquent\SoftDeletes;
-
-        class $namaModel extends Model
-        {
-            protected \$fillable = [" . implode(', ', array_map(function ($kolom) {
-            return "'$kolom'";
-        }, $kolom)) . "];
-
-        protected \$dates = ['deleted_at']; // Tentukan kolom yang merupakan soft delete
-
-            // Definisikan relasi dengan model
-            " . implode("\n", array_map(function ($relasi) {
-            return "public function $relasi()
-            {
-                return \$this->belongsTo($relasi::class);
-            }";
-        }, $relasi)) . "
-        }
-        ";
-
-        // Simpan model ke dalam direktori Models
-        $modelFileName = $namaModel . '.php';
-        $modelPath = app_path('Models/' . $modelFileName);
-        File::put($modelPath, $modelContent);
-    }
 
     function generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController)
     {

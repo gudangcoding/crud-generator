@@ -107,7 +107,7 @@
                 '<div class="col-1">' +
                 '<label for="relasi">Relasi Model</label>' +
                 '<select class="form-select relasi" name="relasi[]">' +
-                '<option selected>Pilih</option>' +
+                '<option value="">Pilih</option>' +
 
                 @foreach ($models as $model)
                     '<option value="App\\Models\\{{ $model }}">{{ $model }}</option>' +
@@ -118,7 +118,7 @@
                 '<div class="col-1">' +
                 '<label for="acuan">Kolom Acuan</label>' +
                 '<select class="form-select acuan" name="acuan[]">' +
-                '<option selected>Pilih</option>' +
+                '<option value="">Pilih</option>' +
                 @foreach ($columns as $column)
                     '<option value="{{ $column }}">{{ $column }}</option>' +
                 @endforeach
