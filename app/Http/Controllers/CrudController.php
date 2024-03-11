@@ -50,7 +50,7 @@ class CrudController extends Controller
 
     function generate(Request $request)
     {
-        echo json_encode($request->all());
+        // echo json_encode($request->relasi);
         // die();
         // input satuan
         $namaTabel = $request->nama_tabel;
@@ -77,21 +77,21 @@ class CrudController extends Controller
         $parts = explode('/', $folderController);
         $controllerName = end($parts);
         $folderName = reset($parts);
-        //ppanggil fungsi yang sudah dibuat
+        //panggil fungsi yang sudah dibuat
         // $this->generateMigration($namaTabel, $kolom, $type, $enum, $lengthData, $acuan);
-        $this->generateModel($namaTabel, $kolom, $relasi, $acuan);
-        $this->generateFakeData($namaTabel, $kolom, $type, $namaModel);
-        // $this->generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController);
-        // $this->generateControllerAPI($namaTabel, $namaModel, $namaController, $folderController);
-        // $this->generateAuthApi($namaController, $folderController);
+        // $this->generateModel($namaTabel, $kolom, $relasi, $acuan);
+        // $this->generateFakeData($namaTabel, $kolom, $type, $namaModel);
+        // $this->generateControllerWeb($namaTabel, $kolom, $namaModel, $namaController, $folderController);
+        // $this->generateControllerAPI($namaTabel, $kolom, $namaModel, $namaController, $folderController);
+        // $this->generateAuthApi();
         // $this->generateRouteWeb($namaController, $folderController);
         // $this->generateRouteAPI($namaController, $folderController);
-        // $this->generateViewIndex($namaTabel, $kolom, $acuan);
+        // $this->generateViewIndex($namaTabel, $folderController, $kolom);
         // $this->generateViewCreate($namaTabel, $kolom, $acuan);
         // $this->generateViewEdit($namaTabel, $kolom, $acuan);
         // $this->generateViewShow($namaTabel, $kolom, $acuan);
 
-        // $this->generatePostmanJson($namaTabel);
+        $this->generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController);
     }
 
     function generateMigration($namaTabel, $kolom, $type, $lengthData = 255, $enum = null, $acuan = [])
@@ -190,7 +190,7 @@ class CrudController extends Controller
 
 
 
-    function generateModel($namaModel, $kolom, $relasi = [], $acuan = [])
+    function generateModel($namaModel, $kolom, $relasi, $acuan)
     {
         // Membuat model dengan relasi
         $content = "<?php
@@ -213,9 +213,10 @@ class CrudController extends Controller
         $content .= "protected \$dates = ['deleted_at']; // Tentukan kolom yang merupakan soft delete\n";
 
 
-        if (!empty($relasi) && !empty($acuan)) {
-            // Definisikan relasi dengan model
-            foreach ($relasi as $key => $value) {
+
+        // Definisikan relasi dengan model
+        foreach ($relasi as $key => $value) {
+            if ($relasi[$key] != null) {
                 // if (in_array($value, $acuan)) {
                 $parts = explode('\\', $value);
                 $model = end($parts);
@@ -312,7 +313,7 @@ class CrudController extends Controller
         File::put($factoryPath, $factoryContent);
 
 
-        // Misalkan ini adalah kode yang ingin Anda sisipkan
+        // ini adalah kode yang ingin Anda sisipkan
         $codeToInsert = "\n\n\App\Models\\" . $model . "::factory()->count(10)->create();\n\n";
 
         // Baca isi dari DatabaseSeeder.php
@@ -336,7 +337,19 @@ class CrudController extends Controller
         file_put_contents($databaseSeederPath, $modifiedSeederContent);
     }
 
-    function generatePostmanJson($namaTabel)
+    function appendToPostmanJson($newData, $existingPath)
+    {
+        // Membaca isi file yang sudah ada
+        $existingData = json_decode(File::get($existingPath), true);
+
+        // Menggabungkan data baru dengan data yang sudah ada
+        $mergedData = array_merge_recursive($existingData, $newData);
+
+        // Menulis kembali file dengan data yang sudah digabungkan
+        File::put($existingPath, json_encode($mergedData, JSON_PRETTY_PRINT));
+    }
+
+    function generatePostmanJson($namaTabel, $kolom, $namaModel, $folderController)
     {
         // Base URL aplikasi
         $baseUrl = "http://localhost:8000";
@@ -357,7 +370,7 @@ class CrudController extends Controller
                         "header" => [],
                         "body" => [
                             "mode" => "raw",
-                            "raw" => "{\n    \"key\": \"value\"\n}"
+                            "raw" => json_encode($kolom, JSON_PRETTY_PRINT)
                         ],
                         "url" => [
                             "raw" => $baseUrl . "/api/" . strtolower($namaTabel),
@@ -389,7 +402,7 @@ class CrudController extends Controller
                         "header" => [],
                         "body" => [
                             "mode" => "raw",
-                            "raw" => "{\n    \"key\": \"value\"\n}"
+                            "raw" => json_encode($kolom, JSON_PRETTY_PRINT)
                         ],
                         "url" => [
                             "raw" => $baseUrl . "/api/" . strtolower($namaTabel) . "/{id}",
@@ -420,29 +433,33 @@ class CrudController extends Controller
         // Konversi ke JSON
         $postmanJson = json_encode($postmanData, JSON_PRETTY_PRINT);
 
-        return $postmanJson;
+        // Simpan JSON ke dalam file
+        $postmanPath = base_path('postman.json');
+
+        // Panggil fungsi appendToPostmanJson untuk menambahkan data baru
+        $this->appendToPostmanJson(json_decode($postmanJson, true), $postmanPath);
     }
 
 
 
-    function generateControllerWeb($namaTabel, $namaModel, $namaController, $folderController)
+
+
+    function generateControllerWeb($namaTabel, $kolom, $namaModel, $namaController, $folderController)
     {
         // Membuat controller dengan fungsi CRUD dan validasi
-        $controllerContent = "<?php
+        $content = "<?php
 
         namespace App\Http\Controllers;
 
         use Illuminate\Http\Request;
         use App\Models\\$namaModel;
-        use Validator;
-        use DB; // Tambahkan penggunaan DB
+        use Illuminate\Support\Facades\Validator;
+        use Illuminate\Support\Facades\DB; // Tambahkan penggunaan DB
         use Illuminate\Database\Eloquent\SoftDeletes;
 
         class $namaController extends Controller
         {
-            /**
-             * Menampilkan semua data $namaTabel.
-             */
+
             public function index(Request $" . "request)
             {
                 // Ambil data filter dari request POST
@@ -515,7 +532,12 @@ class CrudController extends Controller
                 // Validasi input
                 $" . "validator = Validator::make($" . "request->all(), [
                     // Lakukan validasi sesuai dengan struktur kolom yang dibuat
-                ]);
+                    ";
+        foreach ($kolom as $key => $col) {
+            $content .= "'$col' => 'required',";
+        }
+        $content .= "
+            ]);
 
                 if ($" . "validator->fails()) {
                     return redirect()->back()->withErrors($" . "validator)->withInput();
@@ -552,7 +574,11 @@ class CrudController extends Controller
             {
                 // Validasi input
                 $" . "validator = Validator::make($" . "request->all(), [
-                    // Lakukan validasi sesuai dengan struktur kolom yang dibuat
+                    ";
+        foreach ($kolom as $key => $col) {
+            $content .= "'$col' => 'required',";
+        }
+        $content .= "
                 ]);
 
                 if ($" . "validator->fails()) {
@@ -582,45 +608,41 @@ class CrudController extends Controller
         // Simpan controller ke dalam direktori Controllers
         $controllerFileName = $namaController . '.php';
         $controllerPath = app_path('Http/Controllers/' . $controllerFileName);
-        File::put($controllerPath, $controllerContent);
+        File::put($controllerPath, $content);
     }
 
-    function generateControllerAPI($namaTabel, $namaModel, $namaController)
+    function generateControllerAPI($namaTabel, $kolom, $namaModel, $namaController, $folderController)
     {
+
         // Membuat API controller
-        $apiControllerContent = "<?php
+        $content = "<?php
 
             namespace App\Http\Controllers\API;
 
             use App\Http\Controllers\Controller;
             use Illuminate\Http\Request;
             use App\Models\\$namaModel;
-            use Validator;
+            use Illuminate\Support\Facades\Validator;
 
             class {$namaController}API extends Controller
             {
-                /**
-                 * Display a listing of the resource.
-                 *
-                 * @return \Illuminate\Http\Response
-                 */
+
                 public function index()
                 {
                     $" . "data = $namaModel::all();
                     return response()->json($" . "data);
                 }
 
-                /**
-                 * Store a newly created resource in storage.
-                 *
-                 * @param  \Illuminate\Http\Request  $" . "request
-                 * @return \Illuminate\Http\Response
-                 */
+
                 public function store(Request $" . "request)
                 {
                     // Validasi input
                     $" . "validator = Validator::make($" . "request->all(), [
-                        // Lakukan validasi sesuai dengan struktur kolom yang dibuat
+                        ";
+        foreach ($kolom as $key => $col) {
+            $content .= "'$col' => 'required',\n";
+        }
+        $content .= "
                     ]);
 
                     if ($" . "validator->fails()) {
@@ -656,7 +678,11 @@ class CrudController extends Controller
                 {
                     // Validasi input
                     $" . "validator = Validator::make($" . "request->all(), [
-                        // Lakukan validasi sesuai dengan struktur kolom yang dibuat
+                        ";
+        foreach ($kolom as $key => $col) {
+            $content .= "'$col' => 'required',\n";
+        }
+        $content .= "
                     ]);
 
                     if ($" . "validator->fails()) {
@@ -689,10 +715,12 @@ class CrudController extends Controller
         // Simpan API controller ke dalam direktori Controllers/API
         $apiControllerFileName = "{$namaController}API.php";
         $apiControllerPath = app_path('Http/Controllers/API/' . $apiControllerFileName);
-        File::put($apiControllerPath, $apiControllerContent);
+        // Pengecekan apakah folder sudah ada, jika tidak, buat folder
+
+        File::put($apiControllerPath, $content);
     }
 
-    function generateAuthApi(Request $request, $namaController)
+    function generateAuthApi()
     {
         $authContent = "<?php
 
@@ -701,17 +729,21 @@ class CrudController extends Controller
         use App\Http\Controllers\Controller;
         use Illuminate\Http\Request;
         use App\Models\User; // Ubah User ke nama model yang digunakan jika berbeda
-        use Validator;
+        use Illuminate\Support\Facades\Validator;
+        use Illuminate\Support\Facades\Auth;
 
         class AuthControllerAPI extends Controller
         {
-            /**
-             * Register a new user.
-             *
-             * @param  \Illuminate\Http\Request  $request
-             * @return \Illuminate\Http\Response
-             */
-            public function register(Request $request)
+
+            public function profil(Request \$request)  {
+                \$user = User::where('id', \$request->id)->first();
+                return response()->json([
+                    'success' => true,
+                    'data' => \$user
+                ], 201);
+            }
+
+            public function register(Request \$request)
             {
                 // Validasi input
                 \$validator = Validator::make(\$request->all(), [
@@ -726,91 +758,117 @@ class CrudController extends Controller
 
                 // Simpan data user ke database
                 \$user = User::create([
-                    'name' => $request->name,
-                    'email' => $request->email,
-                    'password' => bcrypt($request->password),
+                    'name' => \$request->name,
+                    'email' => \$request->email,
+                    'password' => bcrypt(\$request->password),
                 ]);
 
                 return response()->json(['message' => 'User berhasil didaftarkan', 'data' => \$user], 201);
             }
 
-            /**
-             * Log in an existing user.
-             *
-             * @param  \Illuminate\Http\Request  $request
-             * @return \Illuminate\Http\Response
-             */
-            public function login(Request $request)
+
+            public function login(Request \$request)
             {
-                // Validasi input
-                \$validator = Validator::make($request->all(), [
-                    'email' => 'required|string|email',
-                    'password' => 'required|string',
+                \$validator = Validator::make(\$request->all(), [
+                    'email' => 'required|email',
+                    'password' => 'required',
                 ]);
-
                 if (\$validator->fails()) {
-                    return response()->json(['error' => \$validator->errors()], 422);
+                    return response()->json(['error' => \$validator->errors()->all()]);
                 }
 
-                // Coba autentikasi user
-                if (!auth()->attempt($request->only('email', 'password'))) {
-                    return response()->json(['error' => 'Unauthorized'], 401);
+                if (Auth::guard()->attempt(['email' => \$request->email, 'password' => \$request->password])){
+                    \$user = User::select('id', 'name', 'email','alamat','nohp','foto')->find(auth()->guard()->user()->id);
+                    \$success = \$user;
+                    \$token =  \$user->createToken('mytoken')->plainTextToken;
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Login success!',
+                        'data' => \$success,
+                    ], 201);
+                }else{
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Login Failed!',
+                    ], 401);
                 }
-
-                // Generate token
-                \$accessToken = auth()->user()->createToken('authToken')->accessToken;
-
-                return response()->json(['user' => auth()->user(), 'access_token' => \$accessToken]);
             }
 
-            /**
-             * Log out the authenticated user.
-             *
-             * @param  \Illuminate\Http\Request  $request
-             * @return \Illuminate\Http\Response
-             */
-            public function logout(Request $request)
+
+            public function logout(Request \$request)
             {
                 // Revoke semua token yang terkait dengan pengguna saat ini
-                $request->user()->tokens()->delete();
+                \$request->user()->tokens()->delete();
 
                 return response()->json(['message' => 'Logout berhasil']);
             }
         }
         ";
         // Simpan API controller ke dalam direktori Controllers/API
-        $apiControllerFileName = "{$namaController}API.php";
+        $apiControllerFileName = "AuthControllerAPI.php";
         $apiControllerPath = app_path('Http/Controllers/API/' . $apiControllerFileName);
         File::put($apiControllerPath, $authContent);
     }
     function generateRouteWeb($namaController, $folderController)
     {
         // Generate routes untuk web
-        $routeWebContent = "
-            use App\Http\Controllers\\{$namaController};
-            // Web routes
-            Route::resource('$folderController', {$namaController}::class);
-            ";
+        $import = "use App\Http\Controllers\\{$namaController};";
+        // Web routes
+        $route = "Route::resource('$folderController', {$namaController}::class);";
 
         // Simpan route ke dalam file web.php
         $routePath = base_path('routes/web.php');
-        File::append($routePath, $routeWebContent);
+
+        // Membaca isi file web.php
+        $existingContent = File::get($routePath);
+
+        // Memisahkan konten menjadi array per baris
+        $lines = explode("\n", $existingContent);
+
+        // Menambahkan konten baru setelah baris ke-5 (misalnya)
+        array_splice($lines, 5, 0, [$import]);
+
+        // Menggabungkan kembali array ke dalam string
+        $newContent = implode("\n", $lines);
+
+        // Menulis kembali ke file
+        File::put($routePath, "\n" . $newContent);
+
+        // Menambahkan route setelah import
+        File::append($routePath, $route);
     }
+
+
+
 
     function generateRouteAPI($namaController, $folderController)
     {
-        // Generate routes untuk API
-        $routeApiContent = "
-        use App\Http\Controllers\API\\{$namaController}API;
-        // API routes
-        Route::resource('api/$folderController', {$namaController}API::class);
-        ";
-        // Simpan route ke dalam file api.php
+
+        $import = " use App\Http\Controllers\API\\{$namaController}API;";
+        $route = "Route::resource('api/$folderController', {$namaController}API::class);";
+        // Simpan route ke dalam file web.php
         $routePath = base_path('routes/api.php');
-        File::append($routePath, $routeApiContent);
+
+        // Membaca isi file web.php
+        $existingContent = File::get($routePath);
+
+        // Memisahkan konten menjadi array per baris
+        $lines = explode("\n", $existingContent);
+
+        // Menambahkan konten baru setelah baris ke-5 (misalnya)
+        array_splice($lines, 5, 0, [$import]);
+
+        // Menggabungkan kembali array ke dalam string
+        $newContent = implode("\n", $lines);
+
+        // Menulis kembali ke file
+        File::put($routePath, "\n" . $newContent);
+
+        // Menambahkan route setelah import
+        File::append($routePath, $route);
     }
 
-    function generateViewIndex($namaTabel, $folderController, $kolom)
+    function generateViewIndex($namaTabel, $kolom, $folderController)
     {
         $namaModal = strtolower($namaTabel) . '.form.blade.php';
         // Contoh, membuat view blade

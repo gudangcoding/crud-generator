@@ -1,7 +1,12 @@
+
 <?php
+
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TesController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -25,3 +30,4 @@ Route::get('/crud', [App\Http\Controllers\CrudController::class, 'index'])->name
 Route::post('/crud/generate', [App\Http\Controllers\CrudController::class, 'generate'])->name('crud.generate');
 Route::post('/crud/getkolom', [App\Http\Controllers\CrudController::class, 'tampiKolom'])->name('crud.getkolom');
 Route::get('/router', [App\Http\Controllers\RouteController::class, 'index'])->name('router');
+Route::resource('Tes/TesController', TesController::class);
