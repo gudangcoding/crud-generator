@@ -5,9 +5,11 @@
             "unique-id",
             "unique-id",
             "unique-id",
+            "unique-id",
             "unique-id"
         ],
         "name": [
+            "Nama Koleksi",
             "Nama Koleksi",
             "Nama Koleksi",
             "Nama Koleksi",
@@ -19,9 +21,11 @@
             "Deskripsi Koleksi",
             "Deskripsi Koleksi",
             "Deskripsi Koleksi",
+            "Deskripsi Koleksi",
             "Deskripsi Koleksi"
         ],
         "schema": [
+            "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
@@ -462,6 +466,94 @@
                     "path": [
                         "api",
                         "tessaja",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "CrudTransaksi": [
+        {
+            "name": "Create CrudTransaksi",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"nama\",\n    \"email\",\n    \"alamat\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/crudtransaksi",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "crudtransaksi"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Read CrudTransaksi",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/crudtransaksi",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "crudtransaksi"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update CrudTransaksi",
+            "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"nama\",\n    \"email\",\n    \"alamat\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/crudtransaksi\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "crudtransaksi",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete CrudTransaksi",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/crudtransaksi\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "crudtransaksi",
                         "{id}"
                     ]
                 }

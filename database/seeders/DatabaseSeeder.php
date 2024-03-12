@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
 
-\App\Models\Member::factory()->count(10)->create();
+\App\Models\CrudTransaksi::factory()->count(10)->create();
 
 }
 }

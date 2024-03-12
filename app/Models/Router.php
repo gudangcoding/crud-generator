@@ -8,4 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Router extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'url',
+        'name',
+        'controller',
+        'method'
+    ];
 }

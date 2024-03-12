@@ -2,12 +2,12 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h1>Data Router</h1>
+            <h1>Data Router WEB</h1>
         </div>
         <div class="card-body">
-            <h1>List of Routes API</h1>
+            <h1>List of Routes WEB</h1>
             <ul>
-                @foreach ($rute->all() as $route)
+                @foreach ($routes->all() as $route)
                     <li>
                         <strong>URL:</strong> {{ $route->uri }}<br>
                         <strong>Name:</strong> {{ $route->getName() }}<br>

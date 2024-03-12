@@ -1,6 +1,6 @@
 ## Crud Generator dengan Laravel
 
-<img src='2.png'>
+<img src='1.png'>
 <hr>
 <ol>
     <li>Membuat Migration Otomatis</li>
