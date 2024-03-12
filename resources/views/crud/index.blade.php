@@ -164,7 +164,7 @@
                 '<div class="col-12 additionalInput" style="display:none;">' +
                 '<br>' +
                 '<select class="form-select additionalInputType" name="additionalInput[]">' +
-                '<option value="" selected>Select</option>' +
+                '<option value="" >Select</option>' +
                 '<option value="Manual">Manual</option>' +
                 '<option value="DB">Database</option>' +
                 '</select>' +
@@ -172,7 +172,7 @@
                 //jika manual
                 '<div class="col-12 manualInput"  style="display:none;">' +
                 '<label for="manual">Data Manual</label>' +
-                '<input type="text" class="form-control" name="manual[]" placeholder="makanan,minuman,cemilan">' +
+                '<input type="text" class="form-control " name="manual[]" placeholder="makanan,minuman,cemilan">' +
                 '</div>' +
                 //jika database
                 '<div class="col-12 dbInput" style="display:none;">' +
@@ -237,6 +237,8 @@
             var dbInput = parentRow.find('.dbInput');
             var keydb = dbInput.find('.keydb');
             var valuedb = dbInput.find('.valuedb');
+            var additionalInputType = parentRow.find('.additionalInputType');
+            additionalInputType.val("DB"); // agar defaultnya DB
             dbInput.hide();
 
             cekbaris.empty(); // Kosongkan elemen select sebelum menambahkan opsi baru
@@ -255,7 +257,8 @@
                             '</option>');
                         keydb.append('<option value="' + columns[i] + '">' + columns[i] + '</option>');
                         valuedb.append('<option value="' + columns[i] + '">' + columns[i] +
-                        '</option>');
+                            '</option>');
+
                     }
                     // Tampilkan elemen select
                     cekbaris.show();
