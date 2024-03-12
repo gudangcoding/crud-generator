@@ -7,6 +7,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Crud Generator</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Scripts -->
+    {{-- @vite(['resources/sass/app.scss', 'resources/js/app.js']) --}}
     <link href="{{ asset('assets/tabler/dist/css/tabler.min.css?1684106062') }}" rel="stylesheet" />
     <link href="{{ asset('assets/tabler/dist/css/tabler-flags.min.css?1684106062') }}" rel="stylesheet" />
     <link href="{{ asset('assets/tabler/dist/css/tabler-payments.min.css?1684106062') }}" rel="stylesheet" />

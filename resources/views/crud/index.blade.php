@@ -63,10 +63,12 @@
             var columnsContainer = $('form');
             var newRow = $('<div class="columnRow">' +
                 '<div class="row mt-3 mb-3">' +
+                //kolom
                 '<div class="col-2">' +
                 '<label for="kolom">Nama Kolom</label>' +
                 '<input type="text" class="form-control" name="kolom[]">' +
                 '</div>' +
+                //type data pada kolom
                 '<div class="col-2">' +
                 '<label for="type_data">Type</label>' +
                 '<select class="form-select dataType" name="type_data[]">' +
@@ -85,16 +87,20 @@
                 '<option value="enum">ENUM</option>' +
                 '</select>' +
                 '<div class="enum">' +
+                '<br>' +
                 '</div>' +
                 '</div>' +
+                //menerima panjang data
                 '<div class="col-1">' +
                 '<label>Length</label>' +
-                '<input type="text" class="form-control" name="lengthData[]">' +
+                '<input type="text" class="form-control" value="255" name="lengthData[]">' +
                 '</div>' +
+                //jika pilihan decimal datanya
                 '<div class="col-1">' +
                 '<label>Decimal</label>' +
-                '<input type="text" class="form-control" name="decimal[]">' +
+                '<input type="text" class="form-control" name="decimal[]" value="0">' +
                 '</div>' +
+                //pilihan default data
                 '<div class="col-1">' +
                 '<label>Default</label>' +
                 '<select class="form-select inputType" name="default[]">' +
@@ -103,18 +109,31 @@
                 '<option value="Unique">Unique</option>' +
                 '</select>' +
                 '</div>' +
-
+                //menampilkan seluruh model dari folder App\Models
                 '<div class="col-1">' +
                 '<label for="relasi">Relasi Model</label>' +
                 '<select class="form-select relasi" name="relasi[]">' +
                 '<option value="">Pilih</option>' +
-
                 @foreach ($models as $model)
                     '<option value="App\\Models\\{{ $model }}">{{ $model }}</option>' +
                 @endforeach
-
+                '</select>' +
+                //pilihan jenis relasi
+                '<div class="col-12 relasiModel" style="display:none;">' +
+                '<br>' +
+                '<select class="form-select" name="relasiModel[]">' +
+                '<option value="">Select</option>' +
+                '<option value="HasOne">HasOne</option>' +
+                '<option value="BelongsTo">BelongsTo</option>' +
+                '<option value="BelongsToMany">BelongsToMany</option>' +
+                '<option value="HasMany">HasMany</option>' +
+                '<option value="hasManyThrough">hasManyThrough</option>' +
+                '<option value="morphTo">morphTo</option>' +
+                '<option value="morphMany">morphMany</option>' +
                 '</select>' +
                 '</div>' +
+                '</div>' +
+                //jika model relasi dipilih tampilkan kolom pada migration
                 '<div class="col-1">' +
                 '<label for="acuan">Kolom Acuan</label>' +
                 '<select class="form-select acuan" name="acuan[]">' +
@@ -124,6 +143,7 @@
                 @endforeach
                 '</select>' +
                 '</div>' +
+                //untuk input
                 '<div class="col-1">' +
                 '<label for="inputType">Jenis Input</label>' +
                 '<select class="form-select inputType" name="inputType[]">' +
@@ -140,29 +160,46 @@
                 '<option value="select">Select</option>' +
                 '<option value="multiselect">Multiselect</option>' +
                 '</select>' +
+                //pemilihan additional input
                 '<div class="col-12 additionalInput" style="display:none;">' +
                 '<br>' +
-                '<select class="form-select" name="additionalInput[]">' +
-                '<option value="">Select</option>' +
+                '<select class="form-select additionalInputType" name="additionalInput[]">' +
+                '<option value="" selected>Select</option>' +
                 '<option value="Manual">Manual</option>' +
                 '<option value="DB">Database</option>' +
                 '</select>' +
                 '</div>' +
-                '<div class="manualInput" style="display:none;">' +
-                '<div class="col-12 manualInput">' +
-                '<label for="manualInput">Manual Input</label>' +
-                '<input type="text" class="form-control" name="manualInput[]">' +
+                //jika manual
+                '<div class="col-12 manualInput"  style="display:none;">' +
+                '<label for="manual">Data Manual</label>' +
+                '<input type="text" class="form-control" name="manual[]" placeholder="makanan,minuman,cemilan">' +
                 '</div>' +
-                '</div>' +
-                '<div class="dbInput" style="display:none;">' +
-                '<div class="col-12">' +
-                '<label for="dbInput">Database Input</label>' +
-                '<select class="form-select" name="dbInput[]" >' +
+                //jika database
+                '<div class="col-12 dbInput" style="display:none;">' +
+                '<label for="dbInput">Key DB</label>' +
+                '<select class="form-select keydb" name="keydb[]" >' +
+                @foreach ($columns as $column)
+                    '<option value="{{ $column }}">{{ $column }}</option>' +
+                @endforeach
+                '</select>' +
+                '<label for="dbInput">value DB</label>' +
+                '<select class="form-select valuedb" name="valuedb[]" >' +
                 @foreach ($columns as $column)
                     '<option value="{{ $column }}">{{ $column }}</option>' +
                 @endforeach
                 '</select>' +
                 '</div>' +
+                //jika type file
+                '<div class="col-12 mt-3 fileInput" style="display:none;">' +
+                '<label for="fileType">File Type</label>' +
+                '<select class="form-select" name="fileType[]">' +
+                '<option value="" selected>Select</option>' +
+                '<option value="foto">Foto</option>' +
+                '<option value="dokumen">Dokumen</option>' +
+                '</select>' +
+                '<br>' +
+                '<label for="fileFilter">File Filter</label>' +
+                '<input type="text" class="form-control" name="fileFilter[]" placeholder="jpg,jpeg,png">' +
                 '</div>' +
                 '</div>' +
 
@@ -188,7 +225,6 @@
                 cekbaris.append(
                     '<input type="text" class="form-control" name="enum[]" placeholder="Pisah dengan koma">'
                 );
-
                 cekbaris.show();
             }
         });
@@ -196,6 +232,13 @@
         $(document).on('change', '.relasi', function() {
             var selectedOption = $(this).val();
             var cekbaris = $(this).closest('.columnRow').find('.acuan');
+            var relasiModel = $(this).closest('.columnRow').find('.relasiModel');
+            var parentRow = $(this).closest('.columnRow');
+            var dbInput = parentRow.find('.dbInput');
+            var keydb = dbInput.find('.keydb');
+            var valuedb = dbInput.find('.valuedb');
+            dbInput.hide();
+
             cekbaris.empty(); // Kosongkan elemen select sebelum menambahkan opsi baru
             cekbaris.hide();
             // Kirim permintaan Ajax untuk mendapatkan informasi kolom
@@ -210,35 +253,64 @@
                     for (var i = 0; i < columns.length; i++) {
                         cekbaris.append('<option value="' + columns[i] + '">' + columns[i] +
                             '</option>');
+                        keydb.append('<option value="' + columns[i] + '">' + columns[i] + '</option>');
+                        valuedb.append('<option value="' + columns[i] + '">' + columns[i] +
+                        '</option>');
                     }
-
                     // Tampilkan elemen select
                     cekbaris.show();
+                    dbInput.show();
                 }
             });
+            selectedOption = selectedOption ? relasiModel.show() : relasiModel.hide();
         });
 
 
         $(document).on('change', '.inputType', function() {
-            var selectedOption = $(this).val();
-            var additionalInputContainer = $(this).closest('.columnRow').find('.additionalInput');
-            additionalInputContainer.hide();
-            if (selectedOption === 'select' || selectedOption === 'multiselect') {
-                additionalInputContainer.show();
+            var opsi = $(this).val();
+            var inputTambahan = $(this).closest('.columnRow').find('.additionalInput');
+            inputTambahan.hide();
+
+            var manualInput = $(this).closest('.columnRow').find('.manualInput');
+            var dbInput = $(this).closest('.columnRow').find('.dbInput');
+            var fileInput = $(this).closest('.columnRow').find('.fileInput');
+            manualInput.hide();
+            dbInput.hide();
+            fileInput.hide();
+
+            if (opsi === 'select' ||
+                opsi === 'multiselect' ||
+                opsi === 'checkbox' ||
+                opsi === 'radio' ||
+                opsi === 'file') {
+                inputTambahan.show();
+
+                if (opsi === 'file') {
+                    inputTambahan.hide();
+                    fileInput.show();
+                }
             }
         });
 
-        // Menampilkan input tambahan berdasarkan pilihan tambahan input (Manual atau Database)
-        $(document).on('change', '[name="additionalInput"]', function() {
+
+
+        $(document).on('change', '.additionalInputType', function() {
             var selectedOption = $(this).val();
-            var manualInput = $(this).closest('.columnRow').find('.manualInput');
-            var dbInput = $(this).closest('.columnRow').find('.dbInput');
+            var parentRow = $(this).closest('.columnRow');
+            var manualInput = parentRow.find('.manualInput');
+            var dbInput = parentRow.find('.dbInput');
+            var fileInput = parentRow.find('.fileInput');
+
             manualInput.hide();
             dbInput.hide();
+            fileInput.hide();
+
             if (selectedOption === 'Manual') {
                 manualInput.show();
             } else if (selectedOption === 'DB') {
                 dbInput.show();
+            } else if (selectedOption === 'File') {
+                fileInput.show();
             }
         });
 
