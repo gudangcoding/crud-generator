@@ -21,8 +21,9 @@
                 {
                     // Validasi input
                     $validator = Validator::make($request->all(), [
-                        'tes' => 'required',
-'bnbn' => 'required',
+                        'nama' => 'required',
+'email' => 'required',
+'alamat' => 'required',
 
                     ]);
 
@@ -30,10 +31,10 @@
                         return response()->json(['error' => $validator->errors()], 422);
                     }
 
-                    // Simpan data member ke database
+                    // Simpan data Member ke database
                     $data = Member::create($request->all());
 
-                    return response()->json(['message' => 'member berhasil disimpan', 'data' => $data], 201);
+                    return response()->json(['message' => 'Member berhasil disimpan', 'data' => $data], 201);
                 }
 
                 /**
@@ -59,8 +60,9 @@
                 {
                     // Validasi input
                     $validator = Validator::make($request->all(), [
-                        'tes' => 'required',
-'bnbn' => 'required',
+                        'nama' => 'required',
+'email' => 'required',
+'alamat' => 'required',
 
                     ]);
 
@@ -68,11 +70,11 @@
                         return response()->json(['error' => $validator->errors()], 422);
                     }
 
-                    // Update data member
+                    // Update data Member
                     $data = Member::findOrFail($id);
                     $data->update($request->all());
 
-                    return response()->json(['message' => 'member berhasil diperbarui', 'data' => $data]);
+                    return response()->json(['message' => 'Member berhasil diperbarui', 'data' => $data]);
                 }
 
                 /**
@@ -86,7 +88,7 @@
                     $data = Member::findOrFail($id);
                     $data->delete();
 
-                    return response()->json(['message' => 'member berhasil dihapus']);
+                    return response()->json(['message' => 'Member berhasil dihapus']);
                 }
             }
             

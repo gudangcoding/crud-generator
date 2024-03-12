@@ -6,11 +6,12 @@
         use Illuminate\Database\Eloquent\Model;
 
         use Illuminate\Database\Eloquent\SoftDeletes;
-class member extends Model
+class Member extends Model
         {
             use SoftDeletes;protected $fillable = [
-'tes',
-'bnbn',
+'nama',
+'email',
+'alamat',
 ];
 protected $dates = ['deleted_at']; // Tentukan kolom yang merupakan soft delete
 

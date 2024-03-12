@@ -3,17 +3,20 @@
         @section('content')
         <div class="card">
             <div class="card-header">
-                <h1>Create member</h1>
+                <h1>Create Member</h1>
             </div>
             <div class="card-body">
                 <form id="createForm">
                     @csrf
                     <div class="form-row"><div class="form-group col">
-                            <label for="tes">Tes</label>
-                            <input type="text" name="tes" class="form-control" id="tes">
+                            <label for="nama">Nama</label>
+                            <input type="text" name="nama" class="form-control" id="nama">
                         </div><div class="form-group col">
-                            <label for="bnbn">Bnbn</label>
-                            <input type="text" name="bnbn" class="form-control" id="bnbn">
+                            <label for="email">Email</label>
+                            <input type="text" name="email" class="form-control" id="email">
+                        </div><div class="form-group col">
+                            <label for="alamat">Alamat</label>
+                            <input type="text" name="alamat" class="form-control" id="alamat">
                         </div></div>
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>

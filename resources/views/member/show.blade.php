@@ -3,19 +3,23 @@
         @section('content')
             <div class="card">
                 <div class="card-header">
-                    <h1>Detail member</h1>
+                    <h1>Detail Member</h1>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table">
                             <tbody>
                                 <tr>
-                                    <td>{{ ucfirst('tes') }}</td>
-                                    <td>{{ member->tes }}</td>
+                                    <td>{{ ucfirst('nama') }}</td>
+                                    <td>{{ Member->nama }}</td>
                                 </tr>
                                 <tr>
-                                    <td>{{ ucfirst('bnbn') }}</td>
-                                    <td>{{ member->bnbn }}</td>
+                                    <td>{{ ucfirst('email') }}</td>
+                                    <td>{{ Member->email }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{ ucfirst('alamat') }}</td>
+                                    <td>{{ Member->alamat }}</td>
                                 </tr>
                             </tbody>
                         </table>

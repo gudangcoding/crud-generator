@@ -9,6 +9,8 @@ class DatabaseSeeder extends Seeder
 
     public function run()
     {
-        $this->call(TessajaSeeder::class);
-    }
+
+\App\Models\Member::factory()->count(10)->create();
+
+}
 }

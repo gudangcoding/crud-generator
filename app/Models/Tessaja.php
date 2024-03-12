@@ -6,7 +6,7 @@
         use Illuminate\Database\Eloquent\Model;
 
         use Illuminate\Database\Eloquent\SoftDeletes;
-class tessaja extends Model
+class Tessaja extends Model
         {
             use SoftDeletes;protected $fillable = [
 'nama',

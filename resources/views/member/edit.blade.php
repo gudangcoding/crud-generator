@@ -2,17 +2,20 @@
         @section('content')
             <div class="card">
                 <div class="card-header">
-                    <h1>Edit member</h1>
+                    <h1>Edit Member</h1>
                 </div>
                 <div class="card-body">
                     <form id="editForm">
                         @csrf
                         <div class="form-row"><div class="form-group col">
-                                    <label for="tes">{{ ucfirst(tes) }}</label>
-                                    <input type="text" name="tes" class="form-control" id="tes" value="{{ $namaTabel->tes }}">
+                                    <label for="nama">{{ ucfirst(nama) }}</label>
+                                    <input type="text" name="nama" class="form-control" id="nama" value="{{ $namaTabel->nama }}">
                                 </div><div class="form-group col">
-                                    <label for="bnbn">{{ ucfirst(bnbn) }}</label>
-                                    <input type="text" name="bnbn" class="form-control" id="bnbn" value="{{ $namaTabel->bnbn }}">
+                                    <label for="email">{{ ucfirst(email) }}</label>
+                                    <input type="text" name="email" class="form-control" id="email" value="{{ $namaTabel->email }}">
+                                </div><div class="form-group col">
+                                    <label for="alamat">{{ ucfirst(alamat) }}</label>
+                                    <input type="text" name="alamat" class="form-control" id="alamat" value="{{ $namaTabel->alamat }}">
                                 </div></div>
                         <button type="submit" class="btn btn-primary">Update</button>
                     </form>

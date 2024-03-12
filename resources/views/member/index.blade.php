@@ -11,9 +11,16 @@
                     <a href="{{ route('member.create') }}" class="btn btn-success">Tambah Data</a>
                     <button type="button" class="btn btn-primary" id="bulkDelete">Hapus Data Terpilih</button>
                 </div>
+                <div class="mb-3">
+                <form action="{{ route('member.import') }}" method="post" enctype="multipart/form-data">
+                    @csrf
+                    <input type="file" name="file">
+                    <button type="submit">Impor</button>
+                </form>
+                </div>
                 <form id="filterForm">
                     @csrf
-                    <div class="form-row"><div class="form-group col"><input type="text" name="{{ tes }}" class="form-control" placeholder="Filter {{ ucfirst(tes) }}"></div><div class="form-group col"><input type="text" name="{{ bnbn }}" class="form-control" placeholder="Filter {{ ucfirst(bnbn) }}"></div><div class="form-group col">
+                    <div class="form-row"><div class="form-group col"><input type="text" name="{{ nama }}" class="form-control" placeholder="Filter {{ ucfirst(nama) }}"></div><div class="form-group col"><input type="text" name="{{ email }}" class="form-control" placeholder="Filter {{ ucfirst(email) }}"></div><div class="form-group col"><input type="text" name="{{ alamat }}" class="form-control" placeholder="Filter {{ ucfirst(alamat) }}"></div><div class="form-group col">
                             <button type="button" id="applyFilter" class="btn btn-primary">Apply Filter</button>
                         </div>
                     </div>
@@ -22,7 +29,7 @@
                     <thead>
                         <tr>
                             <!-- Tambahkan kolom untuk cek semua -->
-                            <th><input type="checkbox" id="selectAll"></th><th>{{ ucfirst(t) }}</th><th>{{ ucfirst(n) }}</th><th>Aksi</th>
+                            <th><input type="checkbox" id="selectAll"></th><th>{{ ucfirst(n) }}</th><th>{{ ucfirst(m) }}</th><th>{{ ucfirst(a) }}</th><th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,11 +84,24 @@
                                 _token: '{{ csrf_token() }}'
                             },
                             success: function(response) {
-                                // Tindakan setelah penghapusan berhasil
+                                Swal.fire({
+                                    title: 'success!',
+                                    text: 'Berhasil Dihapus',
+                                    icon: 'success',
+                                    confirmButtonText: 'Ok',
+                                    duration: 1000
+                                  })
+                                  table.ajax.reload();
                             }
                         });
                     } else {
-                        alert('Pilih setidaknya satu item untuk dihapus.');
+                        Swal.fire({
+                            title: 'error!',
+                            text: 'Pilihan Tidak Boleh Kosong',
+                            icon: 'error',
+                            confirmButtonText: 'Ok',
+                            duration: 1000
+                          })
                     }
                 }
 
@@ -102,7 +122,7 @@
                             data: 'checkbox',
                             orderable: false,
                             searchable: false
-                        },data: '{{ $namaKolom }}',name: '{{ $namaKolom }}'data: '{{ $namaKolom }}',name: '{{ $namaKolom }}'},
+                        },data: '{{ $namaKolom }}',name: '{{ $namaKolom }}'data: '{{ $namaKolom }}',name: '{{ $namaKolom }}'data: '{{ $namaKolom }}',name: '{{ $namaKolom }}'},
                         // Kolom untuk aksi
                         {
                             data: 'aksi',

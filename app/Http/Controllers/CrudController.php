@@ -125,8 +125,7 @@ class CrudController extends Controller
                     {
                         Schema::create('$tabel', function (Blueprint \$table) {\n";
             $content .= "\$table->uuid('id')->primary();\n";
-            $content .= "\$table->timestamps();\n";
-            $content .= "\$table->softDeletes(); // Menambahkan soft deletes\n";
+
             if ($kolom) {
                 foreach ($kolom as $kolom => $kol) {
                     if (in_array($kol, $acuan)) {
@@ -179,7 +178,10 @@ class CrudController extends Controller
                     }
                 }
             }
+            $content .= "\$table->timestamps();\n";
+            $content .= "\$table->softDeletes(); // Menambahkan soft deletes\n";
             $content .= "
+
                         });\n
                     }
 
@@ -212,7 +214,7 @@ class CrudController extends Controller
         use Illuminate\Database\Eloquent\Model;\n
         use Illuminate\Database\Eloquent\SoftDeletes;\n";
 
-        $content .= "class $namaModel extends Model
+        $content .= "class " . ucfirst($namaModel) . " extends Model
         {
             use SoftDeletes;";
 
@@ -260,11 +262,12 @@ class CrudController extends Controller
 
         namespace Database\Factories;
 
+        use App\Models\\$model;
         use Illuminate\Database\Eloquent\Factories\Factory;
 
         class " . $model . "Factory extends Factory
         {
-
+            protected \$model = $model::class;
             public function definition()
             {
                 return [";
