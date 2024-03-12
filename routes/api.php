@@ -2,7 +2,9 @@
 
 
 
+
 <?php
+ use App\Http\Controllers\API\TessajaControllerAPI;
 
  use App\Http\Controllers\API\MemberControllerAPI;
 use Illuminate\Http\Request;
@@ -25,4 +27,4 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::resource('api/Tes/TesController', TesControllerAPI::class);Route::resource('api/Produk/ProdukController', ProdukControllerAPI::class);Route::resource('api/Barang/BarangController', BarangControllerAPI::class);Route::resource('api/Member/MemberController', MemberControllerAPI::class);
+Route::resource('api/Tes/TesController', TesControllerAPI::class);Route::resource('api/Produk/ProdukController', ProdukControllerAPI::class);Route::resource('api/Barang/BarangController', BarangControllerAPI::class);Route::resource('api/Member/MemberController', MemberControllerAPI::class);Route::resource('api/Tessaja/TessajaController', TessajaControllerAPI::class);

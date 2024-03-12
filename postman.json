@@ -4,9 +4,11 @@
             "unique-id",
             "unique-id",
             "unique-id",
+            "unique-id",
             "unique-id"
         ],
         "name": [
+            "Nama Koleksi",
             "Nama Koleksi",
             "Nama Koleksi",
             "Nama Koleksi",
@@ -16,9 +18,11 @@
             "Deskripsi Koleksi",
             "Deskripsi Koleksi",
             "Deskripsi Koleksi",
+            "Deskripsi Koleksi",
             "Deskripsi Koleksi"
         ],
         "schema": [
+            "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
@@ -370,6 +374,94 @@
                     "path": [
                         "api",
                         "member",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "Tessaja": [
+        {
+            "name": "Create Tessaja",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"nama\",\n    \"email\",\n    \"alamat\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/tessaja",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "tessaja"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Read Tessaja",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/tessaja",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "tessaja"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Tessaja",
+            "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"nama\",\n    \"email\",\n    \"alamat\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/tessaja\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "tessaja",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Tessaja",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/tessaja\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "tessaja",
                         "{id}"
                     ]
                 }

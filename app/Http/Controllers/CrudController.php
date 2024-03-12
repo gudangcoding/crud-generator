@@ -98,7 +98,7 @@ class CrudController extends Controller
             // Menjalankan perintah db:seed
             Artisan::call('db:seed');
 
-            echo "Migration and seeding completed successfully!";
+            echo "sukses";
         } catch (\Exception $e) {
             echo "Error: " . $e->getMessage();
         }
@@ -110,7 +110,7 @@ class CrudController extends Controller
     {
         $tabel = $namaTabel . "s";
 
-        // Check if the migration already exists
+        // cek apakah tabel ada
         if (!Schema::hasTable($tabel)) {
             $content = "<?php
 
@@ -193,8 +193,6 @@ class CrudController extends Controller
             $migrationFileName = date('Y_m_d_His') . '_create_' . strtolower($tabel) . '_table.php';
             $migrationPath = database_path('migrations/' . $migrationFileName);
             file_put_contents($migrationPath, $content);
-
-            echo "Migration created successfully!";
         } else {
             echo "Migration already exists.";
         }
@@ -476,6 +474,17 @@ class CrudController extends Controller
 
     function generateControllerWeb($namaTabel, $kolom, $namaModel, $namaController, $folderController)
     {
+        // Membuat folder Imports jika belum ada
+        $importsPath = app_path('Imports');
+        if (!File::exists($importsPath)) {
+            File::makeDirectory($importsPath);
+        }
+        // Membuat folder Pdfs jika belum ada
+        $pdfPath = app_path('Pdfs');
+        if (!File::exists($pdfPath)) {
+            File::makeDirectory($pdfPath);
+        }
+        $classImport = $namaModel . "Import";
         // Membuat controller dengan fungsi CRUD dan validasi
         $content = "<?php
 
@@ -486,6 +495,10 @@ class CrudController extends Controller
         use Illuminate\Support\Facades\Validator;
         use Illuminate\Support\Facades\DB; // Tambahkan penggunaan DB
         use Illuminate\Database\Eloquent\SoftDeletes;
+        use Maatwebsite\Excel\Facades\Excel;
+        use Barryvdh\DomPDF\Facade as PDF;
+        use App\Pdfs\\$namaModel" . "Pdf; // Sesuaikan dengan nama kelas PDF Anda
+        use App\Imports\\$classImport;
 
         class $namaController extends Controller
         {
@@ -632,6 +645,31 @@ class CrudController extends Controller
 
                 return redirect()->route('$folderController.index')->with('success', '$namaTabel berhasil dihapus.');
             }
+
+            public function import(Request \$request)
+            {
+                \$request->validate([
+                    'file' => 'required|file|mimes:xlsx,xls',
+                ]);
+
+                \$file = \$request->file('file');
+
+                Excel::import(new $classImport, \$file);
+
+                return redirect()->back()->with('success', 'Data $namaModel berhasil diimpor.');
+            }
+            public function generatePdf()
+            {
+                // Ambil data yang ingin Anda tampilkan dalam PDF
+                \$data =$namaModel::all(); // Contoh pengambilan semua data dari model
+
+                // Buat instance dari kelas PDF
+                \$pdfGenerator = new $namaModel" . "Pdf();
+
+                // Panggil metode generatePdf dengan menyediakan data
+                return \$pdfGenerator->generatePdf(\$data);
+            }
+
         }
         ";
 
@@ -639,6 +677,76 @@ class CrudController extends Controller
         $controllerFileName = $namaController . '.php';
         $controllerPath = app_path('Http/Controllers/' . $controllerFileName);
         File::put($controllerPath, $content);
+
+        // Membuat file impor di dalam folder Imports
+        $importContent = "<?php
+
+                namespace App\Imports;
+
+                use App\Models\\$namaModel;
+                use Illuminate\Support\Facades\Log;
+                use Maatwebsite\Excel\Concerns\ToModel;
+                use Maatwebsite\Excel\Concerns\WithChunkReading;
+                use Maatwebsite\Excel\Concerns\WithHeadingRow;
+                use Maatwebsite\Excel\Concerns\Importable;
+
+                class $classImport implements ToModel, WithChunkReading, WithHeadingRow
+                {
+                    use Importable;
+
+                    public function model(array \$row)
+                    {
+                        try {
+                            \$$namaTabel" . " = new $namaModel([";
+        foreach ($kolom as $key => $col) {
+            $importContent .= "'$col' =>  \$row['$col'],\n";
+        }
+
+        $importContent .= "\n]);
+
+
+        \$$namaTabel" . "->save();
+
+
+                            Log::info('Baris berhasil diimpor: ' . json_encode(\$row));
+                        } catch (\Exception \$e) {
+                            Log::error('Baris gagal diimpor: ' . json_encode(\$row) . '. Error: ' . \$e->getMessage());
+                        }
+                    }
+
+                    public function chunkSize(): int
+                    {
+                        return 1000; // Menentukan ukuran chunk
+                    }
+                    //https://docs.laravel-excel.com/3.1/getting-started/installation.html
+
+
+                }";
+
+        $importFileName = $classImport . '.php';
+        $importFilePath = $importsPath . '/' . $importFileName;
+        File::put($importFilePath, $importContent);
+
+        //untuk generate pdf
+        $pdfContent = "<?php
+
+        namespace App\Pdfs;
+
+        use Barryvdh\DomPDF\Facade as PDF;
+
+        class $namaModel" . "Pdf
+        {
+            public function generatePdf(\$data)
+            {
+                \$pdf = PDF::loadView('$namaModel.pdf', compact('data'));
+                return \$pdf->download('$namaModel.pdf');
+            }
+        }
+        ";
+
+        $pdfFileName = $namaController . 'Pdf.php';
+        $pdfFilePath = app_path('Pdfs/' . $pdfFileName);
+        File::put($pdfFilePath, $pdfContent);
     }
 
     function generateControllerAPI($namaTabel, $kolom, $namaModel, $namaController, $folderController)
@@ -912,11 +1020,11 @@ class CrudController extends Controller
 
     function generateViewIndex($namaTabel, $kolom)
     {
-        // echo $kolom;
-        // die;
+
+
 
         $namafile = strtolower($namaTabel);
-        // Contoh, membuat view blade
+        //  membuat view blade
         $viewContent = "@extends('layouts.app')
 
         @section('content')
@@ -929,6 +1037,13 @@ class CrudController extends Controller
                 <div class=\"mb-3\">
                     <a href=\"{{ route('$namafile.create') }}\" class=\"btn btn-success\">Tambah Data</a>
                     <button type=\"button\" class=\"btn btn-primary\" id=\"bulkDelete\">Hapus Data Terpilih</button>
+                </div>
+                <div class=\"mb-3\">
+                <form action=\"{{ route('$namafile.import') }}\" method=\"post\" enctype=\"multipart/form-data\">
+                    @csrf
+                    <input type=\"file\" name=\"file\">
+                    <button type=\"submit\">Impor</button>
+                </form>
                 </div>
                 <form id=\"filterForm\">
                     @csrf
@@ -1006,11 +1121,24 @@ class CrudController extends Controller
                                 _token: '{{ csrf_token() }}'
                             },
                             success: function(response) {
-                                // Tindakan setelah penghapusan berhasil
+                                Swal.fire({
+                                    title: 'success!',
+                                    text: 'Berhasil Dihapus',
+                                    icon: 'success',
+                                    confirmButtonText: 'Ok',
+                                    duration: 1000
+                                  })
+                                  table.ajax.reload();
                             }
                         });
                     } else {
-                        alert('Pilih setidaknya satu item untuk dihapus.');
+                        Swal.fire({
+                            title: 'error!',
+                            text: 'Pilihan Tidak Boleh Kosong',
+                            icon: 'error',
+                            confirmButtonText: 'Ok',
+                            duration: 1000
+                          })
                     }
                 }
 
