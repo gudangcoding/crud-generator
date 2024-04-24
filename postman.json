@@ -6,9 +6,11 @@
             "unique-id",
             "unique-id",
             "unique-id",
+            "unique-id",
             "unique-id"
         ],
         "name": [
+            "Nama Koleksi",
             "Nama Koleksi",
             "Nama Koleksi",
             "Nama Koleksi",
@@ -22,9 +24,11 @@
             "Deskripsi Koleksi",
             "Deskripsi Koleksi",
             "Deskripsi Koleksi",
+            "Deskripsi Koleksi",
             "Deskripsi Koleksi"
         ],
         "schema": [
+            "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
             "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json",
@@ -554,6 +558,94 @@
                     "path": [
                         "api",
                         "crudtransaksi",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "Pembelian": [
+        {
+            "name": "Create Pembelian",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"nama_trx\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/pembelian",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "pembelian"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Read Pembelian",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/pembelian",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "pembelian"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Pembelian",
+            "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n    \"nama_trx\"\n]"
+                },
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/pembelian\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "pembelian",
+                        "{id}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Pembelian",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "http:\/\/localhost:8000\/api\/pembelian\/{id}",
+                    "protocol": "http",
+                    "host": [
+                        "localhost:8000"
+                    ],
+                    "path": [
+                        "api",
+                        "pembelian",
                         "{id}"
                     ]
                 }

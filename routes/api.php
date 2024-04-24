@@ -1,8 +1,10 @@
+
 <?php
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\CrudTransaksiControllerAPI;
+ use App\Http\Controllers\API\PembelianControllerAPI;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,3 +21,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::resource('crudx', CrudTransaksiControllerAPI::class);
+Route::resource('api/Pembelian/PembelianController', PembelianControllerAPI::class);

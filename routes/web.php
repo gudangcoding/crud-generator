@@ -3,6 +3,7 @@
 use App\Http\Controllers\CrudTransaksiController;
 use App\Models\Router;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\PembelianController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -33,24 +34,26 @@ Route::get('/router', [App\Http\Controllers\RouteController::class, 'index'])->n
 Route::get('/router/web', [App\Http\Controllers\RouteController::class, 'web_route'])->name('router.web');
 Route::get('/router/saveweb', [App\Http\Controllers\RouteController::class, 'saveWebRoutes'])->name('router.saveweb');
 Route::get('/router/saveapi', [App\Http\Controllers\RouteController::class, 'saveApiRoutes'])->name('router.saveapi');
+Route::get('/router/bacaroute', [App\Http\Controllers\RouteController::class, 'bacaroute'])->name('router.bacaroute');
 
 Route::resource('/crudx', CrudTransaksiController::class);
 
 
-// Ambil informasi rute dari database
-$routes = Router::all();
-// Loop melalui setiap rute
-foreach ($routes as $route) {
-    // Tambahkan rute ke dalam aplikasi
-    Route::match([$route->method], $route->url, [
-        'uses' => $route->controller,
-        'as' => $route->name
-    ]);
-}
+// // Ambil informasi rute dari database
+// $routes = Router::all();
+// // Loop melalui setiap rute
+// foreach ($routes as $route) {
+//     // Tambahkan rute ke dalam aplikasi
+//     Route::match([$route->method], $route->url, [
+//         'uses' => $route->controller,
+//         'as' => $route->name
+//     ]);
+// }
 
-$routes = Router::all();
-foreach ($routes as $route) {
-    Route::get($route->url, function () use ($route) {
-        return view('welcome'); // Ganti dengan view yang sesuai
-    })->name($route->name);
-}
+// $routes = Router::all();
+// foreach ($routes as $route) {
+//     Route::get($route->url, function () use ($route) {
+//         return view('welcome'); // Ganti dengan view yang sesuai
+//     })->name($route->name);
+// }
+Route::resource('beli', PembelianController::class);

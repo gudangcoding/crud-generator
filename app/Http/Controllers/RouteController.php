@@ -6,6 +6,7 @@ use App\Models\Router;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\File;
 
 class RouteController extends Controller
 {
@@ -29,11 +30,18 @@ class RouteController extends Controller
 
         // Menyimpan daftar route API ke dalam database
         foreach ($apiRoutes as $apiRoute) {
+
+            $methods = explode('|', implode('|', $apiRoute->methods()));
+            $method = strtolower($methods[0]);
+            $controllers = explode('@', $apiRoute->getActionName());
+            $controller = isset($controllers[0]) ? $controllers[0] . '::class' : '';
+            $fungsi = isset($controllers[1]) ? $controllers[1] : '';
+
             $route = new Router();
             $route->url = $apiRoute->uri();
             $route->name = $apiRoute->getName();
-            $route->controller = $apiRoute->getActionName();
-            $route->method = implode('|', $apiRoute->methods());
+            $route->controller = $controller;
+            $route->method = $method;
             $route->route = 'api';
             $route->save();
         }
@@ -55,11 +63,18 @@ class RouteController extends Controller
         });
         // Menyimpan daftar route web ke dalam database
         foreach ($webRoutes as $webRoute) {
+            $methods = explode('|', implode('|', $webRoute->methods()));
+            $method = strtolower($methods[0]);
+            $controllers = explode('@', $webRoute->getActionName());
+            $controller = isset($controllers[0]) ? $controllers[0] . '::class' : '';
+            $fungsi = isset($controllers[1]) ? $controllers[1] : '';
+
             $route = new Router();
             $route->url = $webRoute->uri();
             $route->name = $webRoute->getName();
-            $route->controller = $webRoute->getActionName();
-            $route->method = implode('|', $webRoute->methods());
+            $route->controller = $controller;
+            $route->method = $method;
+            $route->fungsi = $fungsi;
             $route->route = 'web';
             $route->save();
         }
@@ -82,5 +97,43 @@ class RouteController extends Controller
             return !in_array($route->getName(), $excludedRoutes) && strpos($route->uri(), 'api') === false;
         });
         return view('route.web', compact('routes'));
+    }
+
+    public function bacaroute()
+    {
+        // Eksekusi perintah route:list dan tangkap outputnya
+        // Artisan::call('route:list');
+        $output = Artisan::call('route:list');
+        // Tangkap outputnya
+        $routeList = Artisan::output();
+
+        // Filter output hanya untuk route web
+        $filteredRoutes = $this->filterWebRoutes($routeList);
+
+        // Tampilkan output yang telah difilter
+        echo $filteredRoutes;
+    }
+
+    private function filterWebRoutes($routeList)
+    {
+        // Pisahkan output menjadi baris-baris
+        $lines = explode(PHP_EOL, $routeList);
+
+        // Inisialisasi array untuk menyimpan route web
+        $webRoutes = [];
+
+        // Loop melalui setiap baris
+        foreach ($lines as $line) {
+            // Cek apakah baris mengandung "web" (menandakan route web)
+            if (strpos($line, 'web')) {
+                // Tambahkan baris ke dalam array route web
+                $webRoutes[] = $line;
+            }
+        }
+
+        // Gabungkan baris-baris yang sudah difilter kembali menjadi satu string
+        $filteredOutput = implode(PHP_EOL, $webRoutes);
+
+        return $filteredOutput;
     }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('controller');
             $table->string('method');
+            $table->string('fungsi')->nullable();
             $table->enum('route', ['web', 'api'])->default('web');
             $table->timestamps();
         });

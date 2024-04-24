@@ -13,6 +13,7 @@ class Router extends Model
         'url',
         'name',
         'controller',
-        'method'
+        'method',
+        'fungsi',
     ];
 }
